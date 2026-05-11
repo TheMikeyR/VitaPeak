@@ -25,15 +25,16 @@ This folder slices the master plan (`docs/PLAN.md`) into independent work packag
 ```
 00-scaffold              (no deps)
    ├─ spike-svg-source              (needs 00, gates 02)
-   └─ 01-auth-and-tenancy           (needs 00)
+   └─ 01-auth-and-tenancy           (needs 00; Better-Auth + Prisma tenancy extension)
         ├─ 02-body-map-check-in     (needs 01 + spike-svg-source)
         │     └─ 03-pain-trends-web (needs 02)
         ├─ 04-plans-and-calendar    (needs 01)
         │     └─ 05-program-templates (needs 02, 04)
-        ├─ 06-notifications         (needs 02, 04)
+        │           └─ 10-health-integration (needs 02 + 05, not a deploy gate)
+        ├─ 06-notifications         (needs 02, 04; extends MailProvider abstraction from 01)
         ├─ 07-gdpr-audit-consent    (needs 01)
         ├─ 08-therapist-mobile-companion (needs 02, 03, 06)
-        └─ 09-hardening-and-deploy  (needs everything)
+        └─ 09-hardening-and-deploy  (needs 00-08; 10 may follow or precede)
 ```
 
 Roughly the milestones in `docs/PLAN.md` § "Milestones".
@@ -49,16 +50,17 @@ Then follow the dep graph above.
 | Chunk | Plan mode | Purpose |
 |-------|-----------|---------|
 | `spike-svg-source.md` | REQUIRED | Pick body SVG source + write ADR |
-| `00-scaffold.md` | SKIP | Monorepo, Docker stack, blank apps |
-| `01-auth-and-tenancy.md` | OPTIONAL | Keycloak + clinics + invite flow |
+| `00-scaffold.md` | SKIP | Monorepo, Docker stack (Postgres + MinIO + Mailhog + Redis, **no Keycloak**), blank apps |
+| `01-auth-and-tenancy.md` | REQUIRED | Better-Auth (in-process) + clinics + invite flow + Prisma tenancy extension. See ADR 0002, 0004. |
 | `02-body-map-check-in.md` | REQUIRED | Interactive body map + pain check-in (mobile) |
-| `03-pain-trends-web.md` | OPTIONAL | Therapist web: client list + charts + heatmap |
+| `03-pain-trends-web.md` | OPTIONAL | Therapist web: client list + charts + heatmap (extended in chunk 10 with health overlay) |
 | `04-plans-and-calendar.md` | REQUIRED | Plans + exercise library + calendar |
-| `05-program-templates.md` | REQUIRED | Templates + config resolution + module gating |
-| `06-notifications.md` | OPTIONAL | Expo Push + email alerts |
-| `07-gdpr-audit-consent.md` | REQUIRED | Audit log + consent + export + hard-delete |
+| `05-program-templates.md` | REQUIRED | Templates + config resolution + module gating (includes `healthIntegration` block) |
+| `06-notifications.md` | OPTIONAL | Expo Push + MailProvider abstraction extended (Postmark/Resend) |
+| `07-gdpr-audit-consent.md` | REQUIRED | Audit log + consent (`health_data_sync` type) + export + hard-delete |
 | `08-therapist-mobile-companion.md` | OPTIONAL | Today/Alerts/Notes on mobile |
-| `09-hardening-and-deploy.md` | REQUIRED | CI/CD, Caddy, observability, backups, deploy |
+| `09-hardening-and-deploy.md` | REQUIRED | CI/CD, Caddy, `/metrics` endpoint, Sentry hooks (DSN-gated), `MAIL_PROVIDER=console` on VPS, backups |
+| `10-health-integration.md` | REQUIRED | HealthKit + Health Connect read-only ingest. See ADR 0006. Not a pilot gate. |
 
 ## Chunk file format
 

@@ -23,3 +23,8 @@ Copy `_template.md` for new ADRs.
 | # | Title | Status | Date |
 |---|-------|--------|------|
 | 0001 | Body SVG source | (pending spike) | — |
+| 0002 | Auth: Better-Auth for MVP, Keycloak migration path preserved | Proposed | 2026-05-12 |
+| 0003 | Observability: defer Loki/Prom/Grafana stack, emit metrics only | Proposed | 2026-05-12 |
+| 0004 | Mail: provider abstraction, no outbound delivery on VPS for MVP | Proposed | 2026-05-12 |
+| 0005 | Sentry: deferred for MVP, SDK hooks ship now gated by env DSN | Proposed | 2026-05-12 |
+| 0006 | Health data integration: read-only HealthKit + Health Connect ingest | Proposed | 2026-05-12 |
