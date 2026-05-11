@@ -46,11 +46,12 @@ Target shape per `docs/PLAN.md`:
 ## Hard rules for Claude in this repo
 
 - **Locked vs open decisions**:
-  - **Locked** = anything in PLAN.md "Stack" table, any "Locked decisions" block in a chunk, any accepted ADR. Do NOT propose alternatives. Push back only if the locked choice makes the chunk's stated scope logically impossible.
-  - **Open** = anything NOT locked: UX flows, taxonomy, merge rules, query shapes, file layouts inside `Scope (in)`, ambiguous acceptance details. In plan-mode chunks (`REQUIRED`), these MUST be surfaced and confirmed before code. Plan mode exists specifically to resolve open decisions — it is not a debate forum for locked ones.
+  - **Locked** = anything in PLAN.md "Stack" table, any "Locked decisions" block in a chunk, any ADR with `Status: Accepted`. Do NOT propose alternatives. Push back only if the locked choice makes the chunk's stated scope logically impossible.
+  - **Open** = anything NOT locked: UX flows, taxonomy, merge rules, query shapes, file layouts inside `Scope (in)`, ambiguous acceptance details, AND any ADR still marked `Status: Proposed`. In plan-mode chunks (`REQUIRED`), these MUST be surfaced and confirmed before code. Plan mode exists specifically to resolve open decisions — it is not a debate forum for locked ones.
+- **Always read referenced ADRs.** Before executing a chunk, read every ADR linked from PLAN.md or the chunk file (under `docs/decisions/`). An ADR's `Status:` line tells you how to treat it: `Accepted` = locked, do not re-litigate; `Proposed` = open, surface in plan mode and ask for acceptance (or revision) before relying on it; `Rejected` / `Superseded` = ignore the content, follow the link to the successor.
 - **Stay inside the chunk's Scope (in).** Skip everything in Scope (out).
 - **Respect prerequisites.** If a chunk's prereqs are not done (`Status:` line on prereq chunks not `✅ done`), stop and ask.
-- **For non-obvious design choices** not covered by PLAN.md, draft an ADR under `docs/decisions/` using `docs/decisions/_template.md` and wait for acceptance.
+- **For non-obvious design choices** not covered by PLAN.md, draft an ADR under `docs/decisions/` using `docs/decisions/_template.md` with `Status: Proposed` and wait for acceptance before relying on it. Once accepted, never edit — supersede via a new ADR that links back.
 - **Commits**: Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, etc.) — observed pattern in git log.
 - **Line endings**: LF in repo (enforced by `.gitattributes`). Do not change.
 

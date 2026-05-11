@@ -16,6 +16,8 @@ Before doing anything, read these files in this exact order:
 
 Rules:
 - Respect every "Locked decision" in PLAN.md and in the chunk. Do not re-litigate stack choices.
+- Before executing the chunk, read every ADR referenced in PLAN.md or in the chunk file (under docs/decisions/). Treat any ADR with `Status: Accepted` as a locked decision equal to PLAN.md locks — do not re-litigate.
+- If a referenced ADR has `Status: Proposed`, surface it in plan mode and ask me to accept (or revise) it before relying on it. Never treat a `Proposed` ADR as locked.
 - Stay strictly inside the chunk's "Scope (in)". Skip anything in "Scope (out)".
 - Stop and ask if the chunk's prerequisites are not satisfied in the repo.
 - Run `git status` and `git log -10 --oneline` first to understand current state.
