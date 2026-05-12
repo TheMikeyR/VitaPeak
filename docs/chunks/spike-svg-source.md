@@ -1,6 +1,6 @@
 # Spike — Body SVG source decision
 
-Status: ⬜ not started
+Status: 🟡 in progress — ADR 0001 accepted 2026-05-12; SVG files + PoC tap test pending chunk 00 + chunk 02
 Plan mode: **REQUIRED** — research + decision, no code at end.
 
 ## Goal
