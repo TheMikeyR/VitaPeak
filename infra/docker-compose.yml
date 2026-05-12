@@ -1,0 +1,76 @@
+# VitaPeak — local dev stack
+# No Keycloak: auth is Better-Auth in-process inside apps/api (ADR 0002).
+# Mailhog is local-dev only; production uses MailProvider abstraction (ADR 0004).
+# Telemetry collectors (Loki/Prom/Grafana/Sentry) are NOT here — emit-only on MVP (ADR 0003, 0005).
+
+name: vitapeak
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vitapeak-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vitapeak}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vitapeak_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-vitapeak}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-vitapeak} -d ${POSTGRES_DB:-vitapeak}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: vitapeak-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-vitapeak}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-vitapeak_dev}
+    ports:
+      - '${MINIO_API_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_PORT:-9001}:9001'
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: vitapeak-mailhog
+    restart: unless-stopped
+    ports:
+      - '${MAILHOG_SMTP_PORT:-1025}:1025'
+      - '${MAILHOG_UI_PORT:-8025}:8025'
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:8025']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: vitapeak-redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  minio_data:
+  redis_data:

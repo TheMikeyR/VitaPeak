@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repo state
 
-Greenfield. No code yet. The entire repo is plan-driven via docs/. First implementation work happens through the chunk system below.
+Chunk 00 (scaffold) landed. Turborepo + pnpm workspace with `apps/{api,web,mobile}` and `packages/{config,contracts,db,types,validation}`; `infra/docker-compose.yml` for local `postgres`, `minio`, `mailhog`, `redis`. Auth, body map, and all feature work happen through subsequent chunks under `docs/chunks/`.
 
 ## Workflow — chunk-driven sessions
 
 Implementation is sliced into self-contained work packages under `docs/chunks/`. Each chunk is sized so a fresh AI session can execute it from cold context.
 
 **Entry point for any session**: `docs/SESSION_BOOTSTRAP.md`. The bootstrap prompt forces the AI to:
+
 1. Read `docs/PLAN.md` (locked architectural decisions — do not re-litigate).
 2. Read `docs/chunks/README.md` (chunk index + dep graph).
 3. Read the chunk being executed.
@@ -22,17 +23,18 @@ Implementation is sliced into self-contained work packages under `docs/chunks/`.
 
 ## Authoritative documents
 
-| Document | Purpose |
-|----------|---------|
-| `docs/PLAN.md` | Full architecture, stack, data model, compliance, deployment. Locked decisions live here. |
-| `docs/SESSION_BOOTSTRAP.md` | Paste verbatim at start of every new AI session. |
-| `docs/chunks/README.md` | Chunk index, dependency graph, plan-mode table. |
-| `docs/chunks/*.md` | Individual work packages — Goal, Scope (in/out), Files, Acceptance criteria. |
-| `docs/decisions/` | ADRs (numbered, immutable). Add new ADR for non-obvious choices not covered by PLAN.md. |
+| Document                    | Purpose                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------- |
+| `docs/PLAN.md`              | Full architecture, stack, data model, compliance, deployment. Locked decisions live here. |
+| `docs/SESSION_BOOTSTRAP.md` | Paste verbatim at start of every new AI session.                                          |
+| `docs/chunks/README.md`     | Chunk index, dependency graph, plan-mode table.                                           |
+| `docs/chunks/*.md`          | Individual work packages — Goal, Scope (in/out), Files, Acceptance criteria.              |
+| `docs/decisions/`           | ADRs (numbered, immutable). Add new ADR for non-obvious choices not covered by PLAN.md.   |
 
 ## Architecture (planned, not yet built)
 
 Target shape per `docs/PLAN.md`:
+
 - **Monorepo**: Turborepo + pnpm. `apps/{api,web,mobile}` + `packages/{db,contracts,types,validation,config,ui}` + `infra/`.
 - **Backend**: NestJS + ts-rest + Prisma + Postgres 16. ts-rest contracts are the source of truth for API shape and are shared with web + mobile.
 - **Web**: Next.js App Router (therapist primary). Auth.js v5 with Keycloak provider.
@@ -57,10 +59,22 @@ Target shape per `docs/PLAN.md`:
 
 ## Commands
 
-Build / test / lint commands do not exist yet — first scaffold lands in `docs/chunks/00-scaffold.md`. Once 00 is merged, this section should be updated to include:
-- `pnpm install`, `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`
-- `docker compose -f infra/docker-compose.yml up -d`
-- `pnpm db:migrate`, `pnpm db:seed`
-- `pnpm test`, `pnpm test:e2e:api`, `pnpm test:e2e` (web), `maestro test apps/mobile/.maestro/<flow>.yaml`
+Landed in chunk 00:
 
-Until then: do not invent these. Read the relevant chunk's "Implementation notes" for the canonical commands as they are introduced.
+- `pnpm install` — bootstrap workspace
+- `pnpm dev` — runs API (`:3001`) + web (`:3000`) + Expo Metro (`:8081`) concurrently via Turborepo
+- `pnpm build` — build all packages and apps
+- `pnpm lint` — eslint across workspace
+- `pnpm typecheck` — `tsc --noEmit` across workspace
+- `pnpm db:generate` — prisma generate
+- `pnpm db:migrate` — prisma migrate dev (requires Postgres up)
+- `pnpm db:studio` — open Prisma Studio
+- `pnpm format` / `pnpm format:check` — prettier
+- `docker compose -f infra/docker-compose.yml up -d` — bring up `postgres`, `minio`, `mailhog`, `redis`
+
+Lands in later chunks (do not invent):
+
+- `pnpm db:seed` (chunk 01)
+- `pnpm test`, `pnpm test:e2e:api`, `pnpm test:e2e` (web), `maestro test apps/mobile/.maestro/<flow>.yaml` (chunks 02–09)
+
+Read the relevant chunk's "Implementation notes" for any new canonical commands as they are introduced.

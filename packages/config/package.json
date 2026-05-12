@@ -1,0 +1,34 @@
+{
+  "name": "@vitapeak/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./eslint": "./eslint.config.js",
+    "./eslint-next": "./eslint.next.config.js",
+    "./eslint-react-native": "./eslint.react-native.config.js",
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/node.json": "./tsconfig/node.json",
+    "./tsconfig/nextjs.json": "./tsconfig/nextjs.json",
+    "./tsconfig/react-native.json": "./tsconfig/react-native.json",
+    "./tailwind-preset": "./tailwind-preset.js"
+  },
+  "files": [
+    "eslint.config.js",
+    "eslint.next.config.js",
+    "eslint.react-native.config.js",
+    "tailwind-preset.js",
+    "tsconfig"
+  ],
+  "dependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.5",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "typescript-eslint": "^8.19.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
