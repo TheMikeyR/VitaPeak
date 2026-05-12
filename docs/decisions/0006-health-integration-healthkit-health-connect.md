@@ -1,6 +1,6 @@
 # 0006 — Health data integration: read-only HealthKit + Health Connect ingest
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-05-12
 - **Deciders**: Mike Røntved
 - **Context chunk**: docs/chunks/10-health-integration.md
