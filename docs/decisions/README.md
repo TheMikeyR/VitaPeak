@@ -22,7 +22,7 @@ Copy `_template.md` for new ADRs.
 
 | # | Title | Status | Date |
 |---|-------|--------|------|
-| 0001 | Body SVG source | (pending spike) | — |
+| 0001 | Body SVG source: AI-assisted, owned in-repo | Accepted | 2026-05-12 |
 | 0002 | Auth: Better-Auth for MVP, Keycloak migration path preserved | Accepted | 2026-05-12 |
 | 0003 | Observability: defer Loki/Prom/Grafana stack, emit metrics only | Accepted | 2026-05-12 |
 | 0004 | Mail: provider abstraction, no outbound delivery on VPS for MVP | Accepted | 2026-05-12 |
