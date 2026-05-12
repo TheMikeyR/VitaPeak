@@ -1,6 +1,6 @@
 # 0002 — Auth: Better-Auth for MVP, Keycloak migration path preserved
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-05-12
 - **Deciders**: Mike Røntved
 - **Context chunk**: docs/chunks/01-auth-and-tenancy.md

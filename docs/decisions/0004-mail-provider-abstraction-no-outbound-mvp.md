@@ -1,6 +1,6 @@
 # 0004 — Mail: provider abstraction, no outbound delivery on VPS for MVP
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-05-12
 - **Deciders**: Mike Røntved
 - **Context chunk**: docs/chunks/06-notifications.md

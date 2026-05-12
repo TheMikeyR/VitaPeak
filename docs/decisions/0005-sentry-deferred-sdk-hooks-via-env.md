@@ -1,6 +1,6 @@
 # 0005 — Sentry: deferred for MVP, SDK hooks ship now gated by env DSN
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-05-12
 - **Deciders**: Mike Røntved
 - **Context chunk**: docs/chunks/09-hardening-and-deploy.md

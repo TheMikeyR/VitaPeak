@@ -1,6 +1,6 @@
 # 0003 — Observability: defer Loki/Prom/Grafana stack, emit metrics only
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-05-12
 - **Deciders**: Mike Røntved
 - **Context chunk**: docs/chunks/09-hardening-and-deploy.md
