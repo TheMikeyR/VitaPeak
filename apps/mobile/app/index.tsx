@@ -25,4 +25,5 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 32, fontWeight: '600', color: '#0369a1' },
   subtitle: { marginTop: 12, color: '#475569', textAlign: 'center' },
+  link: { marginTop: 24, color: '#0369a1', fontSize: 16 },
 });
