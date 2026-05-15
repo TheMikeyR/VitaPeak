@@ -158,7 +158,7 @@ pnpm --filter @vitapeak/api add prom-client jose
 - `pnpm --filter @vitapeak/api dev` boots without errors, `GET /health` still returns OK.
 - `curl -X POST http://localhost:3001/auth/sign-up/email -H 'Content-Type: application/json' -d '{"email":"t@example.com","password":"password123","name":"Test Therapist"}'` returns 200 with a session token.
 
-### ✅ Phase 6 — Domain modules (clinics, invites, me) (commit pending — see HEAD)
+### ✅ Phase 6 — Domain modules (clinics, invites, me) (commit `5b68f31`)
 
 - `apps/api/src/modules/clinics/` — `POST /api/clinics/signup` creates Clinic + OWNER Therapist for an authenticated user (no tenant context yet → wrapped in `runWithSystemContext`).
 - `apps/api/src/modules/invites/` — `POST /api/invites/create` (therapist only) generates a 32-byte token, persists SHA-256 hash, sends invite mail; when `MAIL_FALLBACK_RETURN_LINK=true` the raw URL comes back in the response body. `POST /api/invites/accept` (public) validates the hashed token + expiry, signs up the invitee via Better-Auth, creates a Client row, marks invite accepted. Re-accepting returns 410.
@@ -169,11 +169,20 @@ pnpm --filter @vitapeak/api add prom-client jose
 
 `POST /api/clinics/signup`, `POST /api/invites/create`, `POST /api/invites/accept`, `GET /api/me`. See plan file for details. Invite token: 32-byte random → SHA-256 hashed in DB → raw in URL. `MAIL_FALLBACK_RETURN_LINK=true` → response includes `inviteUrl`.
 
-### 🟡 Phase 7 — Contracts + ts-rest/nest binding (NEXT)
+### ✅ Phase 7 — Contracts + ts-rest/nest binding (commit pending — see HEAD)
+
+- `packages/contracts/src/{auth,clinics,invites}.ts` — zod 4 schemas + per-route exports via `c.query` / `c.mutation` (needed because `c.router({route: {...}})` widens to `{[x: string]: any}` and breaks `T extends AppRoute` narrowing in `tsRestHandler`).
+- `packages/contracts/src/index.ts` re-exports each route + sub-contract + the combined `contract` router.
+- Controllers refactored to `@TsRestHandler(route)` + `tsRestHandler(route, async ({ body }) => ...)`. Guards / `@CurrentUser` / `@TenantPrincipal` / `@Audit` still composed on the same method.
+- `@vitapeak/api` gains `@ts-rest/nest` + `@ts-rest/core`.
+- Root `package.json` overrides `zod: ^4.0.0` to match better-auth's bundled zod (avoids two zod copies causing structural type mismatches with ts-rest 3.52).
+- Smoke verified: `POST /api/clinics/signup` with missing `name` returns 400 with a ZodError body (validation goes through ts-rest); happy path still returns 201.
+
+### ⬜ Phase 7b — Reserved.
 
 `packages/contracts/src/{auth,clinics,invites}.ts`. Install `@ts-rest/nest`. Bind to controllers.
 
-### ⬜ Phase 8 — Web (Next.js)
+### 🟡 Phase 8 — Web (Next.js) (NEXT)
 
 `apps/web/middleware.ts` (next-intl cookie + Better-Auth session), `(auth)/login`, `(app)/onboarding/clinic`, `(app)/clients/invite`, public `invite/[token]`. All UI strings via `next-intl` reading from `@vitapeak/i18n`. Install: `next-intl`, `better-auth`, `@vitapeak/i18n`.
 
