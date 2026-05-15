@@ -169,7 +169,7 @@ pnpm --filter @vitapeak/api add prom-client jose
 
 `POST /api/clinics/signup`, `POST /api/invites/create`, `POST /api/invites/accept`, `GET /api/me`. See plan file for details. Invite token: 32-byte random → SHA-256 hashed in DB → raw in URL. `MAIL_FALLBACK_RETURN_LINK=true` → response includes `inviteUrl`.
 
-### ✅ Phase 7 — Contracts + ts-rest/nest binding (commit pending — see HEAD)
+### ✅ Phase 7 — Contracts + ts-rest/nest binding (commit `bc9b4ce`)
 
 - `packages/contracts/src/{auth,clinics,invites}.ts` — zod 4 schemas + per-route exports via `c.query` / `c.mutation` (needed because `c.router({route: {...}})` widens to `{[x: string]: any}` and breaks `T extends AppRoute` narrowing in `tsRestHandler`).
 - `packages/contracts/src/index.ts` re-exports each route + sub-contract + the combined `contract` router.
@@ -182,11 +182,20 @@ pnpm --filter @vitapeak/api add prom-client jose
 
 `packages/contracts/src/{auth,clinics,invites}.ts`. Install `@ts-rest/nest`. Bind to controllers.
 
-### 🟡 Phase 8 — Web (Next.js) (NEXT)
+### ✅ Phase 8 — Web (Next.js) (commit pending — see HEAD)
+
+- `apps/web/middleware.ts` — gates non-public paths on the `better-auth.session_token` cookie; bounces to `/login?next=<path>` when absent.
+- `apps/web/next.config.mjs` — rewrites `/auth/*` and `/api/*` to the API origin (same-origin so Better-Auth cookies land on the web host) + `transpilePackages` includes `@vitapeak/i18n` and `@vitapeak/contracts` + `createNextIntlPlugin('./i18n/request.ts')` wrapper.
+- `apps/web/i18n/request.ts` — next-intl server config reading the `NEXT_LOCALE` cookie (cookie-only, no URL prefix per the plan) and loading messages from `@vitapeak/i18n/locales/<locale>.json`. Defaults to `da`.
+- `apps/web/app/layout.tsx` — wraps the tree in `NextIntlClientProvider` using `getLocale()` + `getMessages()`.
+- `apps/web/src/lib/auth-client.ts` — `createAuthClient({ baseURL: window.origin, basePath: '/auth' })`. Typed as `any` to dodge a Better-Auth `Type 'X' cannot be named without a reference to ...` portability error from deep transitive types.
+- `apps/web/src/lib/api-client.ts` — `apiFetch` + `getJwt()` helpers using same-origin `/auth/token`.
+- Routes: `(auth)/login` (Better-Auth email/password sign-in + sign-up toggle), `(app)/layout.tsx` (server-side cookie guard), `(app)/onboarding/clinic`, `(app)/clients/invite` (shows the copy-link affordance when the API returns `inviteUrl`), public `invite/[token]` for invitees.
+- All UI strings flow through `useTranslations` against the existing `@vitapeak/i18n` keyset (`auth.login.*`, `clinic.onboarding.*`, `invite.send.*`, `invite.accept.*`, `error.*`).
 
 `apps/web/middleware.ts` (next-intl cookie + Better-Auth session), `(auth)/login`, `(app)/onboarding/clinic`, `(app)/clients/invite`, public `invite/[token]`. All UI strings via `next-intl` reading from `@vitapeak/i18n`. Install: `next-intl`, `better-auth`, `@vitapeak/i18n`.
 
-### ⬜ Phase 9 — Mobile (Expo)
+### 🟡 Phase 9 — Mobile (Expo) (NEXT)
 
 `src/auth/use-auth.ts` + `src/api/client.ts` (ofetch + bearer + 401 refresh) + `src/i18n/index.ts` (i18next + expo-localization). Routes: `(auth)/login`, `(client)/index`, `(therapist)/index`. `_layout.tsx` does role-aware redirect. Install: `expo-secure-store`, `expo-localization`, `i18next`, `react-i18next`, `ofetch`, `@vitapeak/i18n`.
 
