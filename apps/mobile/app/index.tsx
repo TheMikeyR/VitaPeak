@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -6,6 +7,9 @@ export default function Index() {
     <View style={styles.container}>
       <Text style={styles.title}>VitaPeak</Text>
       <Text style={styles.subtitle}>Scaffold ready. Client flows land in later chunks.</Text>
+      <Link href="/body-tap-poc" style={styles.link}>
+        → Body map PoC
+      </Link>
       <StatusBar style="auto" />
     </View>
   );
