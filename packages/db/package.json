@@ -21,11 +21,11 @@
     "clean": "rm -rf dist .turbo",
     "lint": "eslint src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "generate": "prisma generate",
-    "migrate": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy",
-    "studio": "prisma studio",
-    "format": "prisma format"
+    "generate": "prisma generate --env-file ../../.env",
+    "migrate": "prisma migrate dev --env-file ../../.env",
+    "migrate:deploy": "prisma migrate deploy --env-file ../../.env",
+    "studio": "prisma studio --env-file ../../.env",
+    "format": "prisma format --env-file ../../.env"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1"
