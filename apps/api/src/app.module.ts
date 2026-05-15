@@ -5,6 +5,9 @@ import { PrismaModule } from './db/prisma.module.js';
 import { MailModule } from './modules/mail/mail.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { BetterAuthModule } from './auth/better-auth.module.js';
+import { ClinicsModule } from './modules/clinics/clinics.module.js';
+import { InvitesModule } from './modules/invites/invites.module.js';
+import { MeModule } from './modules/me/me.module.js';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import { BetterAuthModule } from './auth/better-auth.module.js';
     BetterAuthModule,
     AuditModule,
     HealthModule,
+    ClinicsModule,
+    InvitesModule,
+    MeModule,
   ],
 })
 export class AppModule {}

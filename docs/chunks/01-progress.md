@@ -94,7 +94,16 @@ Resume at the "Next concrete step" section below.
 - `AppModule` imports `PrismaModule`, `MailModule`, `AuditModule`, `HealthModule`.
 - `pnpm typecheck` passes across all 11 workspace tasks.
 
-### ✅ Phase 4 — Better-Auth wiring + guards + decorators (commit pending — see HEAD)
+### ✅ Phase 4 — Better-Auth wiring + guards + decorators (commit `3bbf8ea`)
+
+- `apps/api/src/auth/auth.tokens.ts` — `AUTH_TOKEN` symbol extracted to break the ESM circular import between `better-auth.module.ts` (which imports `AuthGuard`) and `auth.guard.ts` (which previously imported `AUTH_TOKEN` from the module).
+- `apps/api/src/auth/better-auth.config.ts` — `basePath: '/auth'` set explicitly. `definePayload` Therapist/Client lookups wrapped in `runWithSystemContext` (JWT mint runs outside any HTTP request → no ALS frame).
+- `apps/api/src/auth/current-user.decorator.ts` — `@CurrentUser()` + `@TenantPrincipal()` param decorators.
+- `apps/api/src/main.ts` — `NestFactory.create(..., { bodyParser: false })`, `app.use('/auth/*', toNodeHandler(auth))` (Express 4 wildcard), then `express.json()` + `express.urlencoded()`.
+- `apps/api/src/app.module.ts` — `BetterAuthModule` registered.
+- `packages/db/prisma/seed.ts` — instantiates a local minimal Better-Auth, calls `auth.api.signUpEmail` for `demo@vitapeak.local`, then `prisma.clinic.create` + `prisma.therapist.create` (role OWNER) linked by `externalAuthId`. Idempotent.
+- Root scripts added: `db:migrate:deploy`, `db:seed`.
+- Smoke verified: `pnpm db:seed` succeeded; `POST /auth/sign-up/email` returned 200 with a session token; `GET /health` returned ok.
 
 **Files to write:**
 
@@ -149,11 +158,18 @@ pnpm --filter @vitapeak/api add prom-client jose
 - `pnpm --filter @vitapeak/api dev` boots without errors, `GET /health` still returns OK.
 - `curl -X POST http://localhost:3001/auth/sign-up/email -H 'Content-Type: application/json' -d '{"email":"t@example.com","password":"password123","name":"Test Therapist"}'` returns 200 with a session token.
 
-### 🟡 Phase 6 — Domain modules (clinics, invites, me) (NEXT)
+### ✅ Phase 6 — Domain modules (clinics, invites, me) (commit pending — see HEAD)
+
+- `apps/api/src/modules/clinics/` — `POST /api/clinics/signup` creates Clinic + OWNER Therapist for an authenticated user (no tenant context yet → wrapped in `runWithSystemContext`).
+- `apps/api/src/modules/invites/` — `POST /api/invites/create` (therapist only) generates a 32-byte token, persists SHA-256 hash, sends invite mail; when `MAIL_FALLBACK_RETURN_LINK=true` the raw URL comes back in the response body. `POST /api/invites/accept` (public) validates the hashed token + expiry, signs up the invitee via Better-Auth, creates a Client row, marks invite accepted. Re-accepting returns 410.
+- `apps/api/src/modules/me/` — `GET /api/me` returns `{ user, clinic, role }` from req.tenant + JWT claims.
+- `apps/api/src/auth/tenant-context.interceptor.ts` — wraps the downstream handler chain in `runWithTenantContext` so the Prisma tenancy extension sees ALS context across the rxjs/interceptor boundary. `TenantGuard.enterWith` removed; the guard now only attaches `req.tenant` and the interceptor opens the ALS frame for the handler.
+- `.env.example` (+ `.env`) gained `MAIL_FALLBACK_RETURN_LINK=true` and `WEB_BASE_URL=http://localhost:3000` so invite URLs land on the web app.
+- Smoke verified: end-to-end therapist signup → clinic signup → invite create (returns inviteUrl) → invite accept → client `/api/me` returns role=client + correct clinic.
 
 `POST /api/clinics/signup`, `POST /api/invites/create`, `POST /api/invites/accept`, `GET /api/me`. See plan file for details. Invite token: 32-byte random → SHA-256 hashed in DB → raw in URL. `MAIL_FALLBACK_RETURN_LINK=true` → response includes `inviteUrl`.
 
-### ⬜ Phase 7 — Contracts + ts-rest/nest binding
+### 🟡 Phase 7 — Contracts + ts-rest/nest binding (NEXT)
 
 `packages/contracts/src/{auth,clinics,invites}.ts`. Install `@ts-rest/nest`. Bind to controllers.
 

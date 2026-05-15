@@ -7,12 +7,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { PrismaService } from '../db/prisma.service.js';
-import {
-  runWithSystemContext,
-  tenantContext,
-  type Role,
-  type TenantContext,
-} from '../db/tenant-context.js';
+import { runWithSystemContext, type Role, type TenantContext } from '../db/tenant-context.js';
 
 export interface ResolvedTenantPrincipal extends TenantContext {
   externalAuthId: string;
@@ -64,11 +59,10 @@ export class TenantGuard implements CanActivate {
 
     if (!resolved) throw new ForbiddenException('No tenant principal for this user.');
 
-    // `enterWith` makes this AsyncLocalStorage frame the active context for the
-    // remainder of the request — interceptors, controllers, and Prisma queries
-    // that follow will see it.
-    tenantContext.enterWith(resolved);
-
+    // Attach the resolved principal to the request. The TenantContextInterceptor
+    // reads `req.tenant` and wraps the rest of the handler chain in
+    // `runWithTenantContext`, which is the propagation path the Prisma tenancy
+    // extension relies on.
     req.tenant = { ...resolved, externalAuthId: user.externalAuthId };
     return true;
   }
