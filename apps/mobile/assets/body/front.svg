@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 470" fill="none">
+  <!-- HEAD -->
+  <ellipse id="head" cx="100" cy="34" rx="28" ry="32" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- NECK -->
+  <rect id="neck" x="88" y="64" width="24" height="22" rx="4" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- SHOULDERS -->
+  <ellipse id="shoulder.left"  cx="63"  cy="93" rx="22" ry="15" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <ellipse id="shoulder.right" cx="137" cy="93" rx="22" ry="15" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- CHEST split into left / right halves so both are individually tappable -->
+  <path id="chest.left"  d="M78 88 L100 88 L100 145 L78 145 Q74 145 74 141 L74 92 Q74 88 78 88 Z" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <path id="chest.right" d="M100 88 L122 88 Q126 88 126 92 L126 141 Q126 145 122 145 L100 145 Z"  fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- ABDOMEN -->
+  <rect id="abdomen" x="78" y="145" width="44" height="46" rx="4" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- UPPER ARMS -->
+  <rect id="upper-arm.left"  x="43" y="100" width="20" height="60" rx="10" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <rect id="upper-arm.right" x="137" y="100" width="20" height="60" rx="10" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- ELBOWS -->
+  <ellipse id="elbow.left"  cx="53"  cy="160" rx="11" ry="9" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <ellipse id="elbow.right" cx="147" cy="160" rx="11" ry="9" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- FOREARMS -->
+  <rect id="forearm.left"  x="44" y="169" width="18" height="54" rx="9" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <rect id="forearm.right" x="138" y="169" width="18" height="54" rx="9" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- WRISTS -->
+  <ellipse id="wrist.left"  cx="53"  cy="223" rx="10" ry="7" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <ellipse id="wrist.right" cx="147" cy="223" rx="10" ry="7" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- HANDS -->
+  <ellipse id="hand.left"  cx="53"  cy="248" rx="13" ry="22" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <ellipse id="hand.right" cx="147" cy="248" rx="13" ry="22" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- HIPS -->
+  <rect id="hip.left"  x="78"  y="191" width="22" height="34" rx="4" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <rect id="hip.right" x="100" y="191" width="22" height="34" rx="4" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- GROIN -->
+  <ellipse id="groin" cx="100" cy="231" rx="16" ry="10" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- THIGHS -->
+  <rect id="thigh.left"  x="74"  y="241" width="22" height="78" rx="10" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <rect id="thigh.right" x="104" y="241" width="22" height="78" rx="10" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- KNEES -->
+  <ellipse id="knee.left"  cx="85"  cy="319" rx="13" ry="12" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <ellipse id="knee.right" cx="115" cy="319" rx="13" ry="12" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- SHINS -->
+  <rect id="shin.left"  x="74"  y="331" width="22" height="76" rx="10" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <rect id="shin.right" x="104" y="331" width="22" height="76" rx="10" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- ANKLES -->
+  <ellipse id="ankle.left"  cx="85"  cy="408" rx="11" ry="8" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <ellipse id="ankle.right" cx="115" cy="408" rx="11" ry="8" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+
+  <!-- FEET -->
+  <ellipse id="foot.left"  cx="80"  cy="432" rx="18" ry="14" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+  <ellipse id="foot.right" cx="120" cy="432" rx="18" ry="14" fill="#f0f0f0" stroke="#888" stroke-width="1.5"/>
+</svg>
