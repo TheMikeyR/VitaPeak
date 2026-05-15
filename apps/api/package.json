@@ -17,6 +17,7 @@
     "@nestjs/platform-express": "^10.4.15",
     "@vitapeak/contracts": "workspace:*",
     "@vitapeak/db": "workspace:*",
+    "better-auth": "^1.6.11",
     "nestjs-pino": "^4.2.0",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
