@@ -5,7 +5,7 @@ Live progress log for `docs/chunks/01-auth-and-tenancy.md`. **Updated after ever
 - **Branch**: `claude/chunk-01-auth-and-tenancy`
 - **Static plan**: `/home/agent/.claude/plans/sequential-wandering-sloth.md`
 - **Last update**: 2026-05-16
-- **Current phase**: 6 (next — clinics/invites/me endpoints)
+- **Current phase**: 11 (next — PR + acceptance)
 
 ---
 
@@ -207,7 +207,7 @@ pnpm --filter @vitapeak/api add prom-client jose
 
 `src/auth/use-auth.ts` + `src/api/client.ts` (ofetch + bearer + 401 refresh) + `src/i18n/index.ts` (i18next + expo-localization). Routes: `(auth)/login`, `(client)/index`, `(therapist)/index`. `_layout.tsx` does role-aware redirect. Install: `expo-secure-store`, `expo-localization`, `i18next`, `react-i18next`, `ofetch`, `@vitapeak/i18n`.
 
-### ✅ Phase 10 — API e2e tests (commit pending — see HEAD)
+### ✅ Phase 10 — API e2e tests (commit `aec09eb`)
 
 - vitest 4 + `@nestjs/testing@10` + supertest installed in `apps/api`.
 - `apps/api/test/unit/tenancy.extension.spec.ts` — confirms missing tenant context throws, `runWithSystemContext` allows reads, and tenant context injects the clinic filter.
