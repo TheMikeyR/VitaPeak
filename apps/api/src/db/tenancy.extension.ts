@@ -1,5 +1,5 @@
 import { Prisma } from '@vitapeak/db';
-import { tenantContext, MissingTenantContextError, type TenantContext } from './tenant-context';
+import { tenantContext, MissingTenantContextError, type TenantContext } from './tenant-context.js';
 
 const TENANT_BOUND_MODELS = new Set(['Therapist', 'Client', 'Invite']);
 

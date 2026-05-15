@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
-import { HealthModule } from './health/health.module';
-import { PrismaModule } from './db/prisma.module';
+import { HealthModule } from './health/health.module.js';
+import { PrismaModule } from './db/prisma.module.js';
+import { MailModule } from './modules/mail/mail.module.js';
+import { AuditModule } from './audit/audit.module.js';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { PrismaModule } from './db/prisma.module';
       },
     }),
     PrismaModule,
+    MailModule,
+    AuditModule,
     HealthModule,
   ],
 })

@@ -1,6 +1,6 @@
 import { Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@vitapeak/db';
-import { tenancyExtension } from './tenancy.extension';
+import { tenancyExtension } from './tenancy.extension.js';
 
 const buildClient = () => new PrismaClient().$extends(tenancyExtension);
 
