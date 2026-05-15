@@ -4,6 +4,7 @@ import { HealthModule } from './health/health.module.js';
 import { PrismaModule } from './db/prisma.module.js';
 import { MailModule } from './modules/mail/mail.module.js';
 import { AuditModule } from './audit/audit.module.js';
+import { BetterAuthModule } from './auth/better-auth.module.js';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AuditModule } from './audit/audit.module.js';
     }),
     PrismaModule,
     MailModule,
+    BetterAuthModule,
     AuditModule,
     HealthModule,
   ],

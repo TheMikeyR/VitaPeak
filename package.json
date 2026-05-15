@@ -17,6 +17,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "db:generate": "pnpm --filter @vitapeak/db generate",
     "db:migrate": "pnpm --filter @vitapeak/db migrate",
+    "db:migrate:deploy": "pnpm --filter @vitapeak/db migrate:deploy",
+    "db:seed": "pnpm --filter @vitapeak/db seed",
     "db:studio": "pnpm --filter @vitapeak/db studio",
     "prepare": "husky"
   },

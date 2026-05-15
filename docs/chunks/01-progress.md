@@ -4,8 +4,8 @@ Live progress log for `docs/chunks/01-auth-and-tenancy.md`. **Updated after ever
 
 - **Branch**: `claude/chunk-01-auth-and-tenancy`
 - **Static plan**: `/home/agent/.claude/plans/sequential-wandering-sloth.md`
-- **Last update**: 2026-05-15
-- **Current phase**: 4 (next — Better-Auth wiring)
+- **Last update**: 2026-05-16
+- **Current phase**: 6 (next — clinics/invites/me endpoints)
 
 ---
 
@@ -94,7 +94,7 @@ Resume at the "Next concrete step" section below.
 - `AppModule` imports `PrismaModule`, `MailModule`, `AuditModule`, `HealthModule`.
 - `pnpm typecheck` passes across all 11 workspace tasks.
 
-### 🟡 Phase 4 — Better-Auth wiring + guards + decorators (NEXT)
+### ✅ Phase 4 — Better-Auth wiring + guards + decorators (commit pending — see HEAD)
 
 **Files to write:**
 
@@ -149,7 +149,7 @@ pnpm --filter @vitapeak/api add prom-client jose
 - `pnpm --filter @vitapeak/api dev` boots without errors, `GET /health` still returns OK.
 - `curl -X POST http://localhost:3001/auth/sign-up/email -H 'Content-Type: application/json' -d '{"email":"t@example.com","password":"password123","name":"Test Therapist"}'` returns 200 with a session token.
 
-### ⬜ Phase 6 — Domain modules (clinics, invites, me)
+### 🟡 Phase 6 — Domain modules (clinics, invites, me) (NEXT)
 
 `POST /api/clinics/signup`, `POST /api/invites/create`, `POST /api/invites/accept`, `GET /api/me`. See plan file for details. Invite token: 32-byte random → SHA-256 hashed in DB → raw in URL. `MAIL_FALLBACK_RETURN_LINK=true` → response includes `inviteUrl`.
 
@@ -177,53 +177,17 @@ Run all chunk acceptance criteria. Update `docs/chunks/01-auth-and-tenancy.md` S
 
 ## Next concrete step
 
-**Start Phase 4 — Better-Auth wiring.**
+**Start Phase 6 — Domain modules (clinics / invites / me).**
 
-1. Install runtime deps:
-   ```
-   pnpm --filter @vitapeak/api add prom-client jose
-   ```
-2. Write `apps/api/src/auth/metrics.ts` — `prom-client` Counter `auth_failure_total{reason}`. Singleton registry export.
-3. Write `apps/api/src/auth/better-auth.config.ts` — factory `createAuth(prisma, mailService)`:
-   - `prismaAdapter(prisma, { provider: 'postgresql' })`
-   - `emailAndPassword: { enabled: true, autoSignIn: true }`
-   - `secret: process.env.BETTER_AUTH_SECRET`, `baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:3001'`
-   - Plugins: `magicLink({ sendMagicLink: ({email,url}) => mailService.sendMagicLink({to:email,url}), expiresIn: 60*15 })`, `jwt({ jwt: { expirationTime: '1h', issuer: 'vitapeak-better-auth', definePayload: ... } })`, `bearer()`
-   - JWT `definePayload`: look up Therapist or Client by `externalAuthId = user.id`, return `{ sub: user.id, email, email_verified, preferred_username: name, realm_access: { roles: [role] } }`.
-4. Write `apps/api/src/auth/better-auth.module.ts` — `@Module` with provider:
-   ```
-   { provide: AUTH_TOKEN, inject: [PrismaService, MailService], useFactory: (p, m) => createAuth(p.client as unknown as PrismaClient, m) }
-   ```
-   Export `AUTH_TOKEN` symbol.
-5. Write `apps/api/src/auth/auth.guard.ts` — verifies `Authorization: Bearer <jwt>` via Better-Auth's JWKS (use `jose.createRemoteJWKSet` against `/auth/jwks`, OR `jose.jwtVerify` with the key from `auth.api.getJwks()`). Attaches `{ externalAuthId, email, role }` to `req.user`. On failure: throw `UnauthorizedException` + increment `auth_failure_total`.
-6. Write `apps/api/src/auth/tenant.guard.ts` — DB lookup `Therapist.findFirst({where:{externalAuthId}}) ?? Client.findFirst({where:{externalAuthId}})`. **Run under `runWithSystemContext()`** for the lookup itself (the extension would block a query on Therapist with no tenant context). 403 if no row. Then `tenantContext.enterWith({clinicId, dbUserId, role})`.
-7. Write `apps/api/src/auth/current-user.decorator.ts` — `@CurrentUser()` returning `req.user`.
-8. Modify `apps/api/src/main.ts`:
-   ```
-   const app = await NestFactory.create(AppModule, { bodyParser: false, bufferLogs: true });
-   const auth = app.get(AUTH_TOKEN);
-   app.use('/auth/{*splat}', toNodeHandler(auth));  // Express 5 wildcard syntax
-   const express = await import('express');
-   app.use(express.json({ limit: '1mb' }));
-   app.use(express.urlencoded({ extended: true }));
-   ```
-9. Register `BetterAuthModule` in `AppModule`.
-10. Write `packages/db/prisma/seed.ts` — uses `createAuth(plainPrisma, consoleMailProvider)` to `auth.api.signUpEmail({body:{email:'demo@vitapeak.local', password:'demo-password-123', name:'Demo Therapist'}})`. Then create `Clinic` (under `runWithSystemContext`) and `Therapist` row with `externalAuthId = user.id`, role `OWNER`.
-11. Test:
-    ```
-    pnpm --filter @vitapeak/api typecheck
-    pnpm db:seed
-    tmux new-session -d -s vitapeak-api 'cd apps/api && pnpm dev'
-    sleep 5
-    curl -X POST http://localhost:3001/auth/sign-up/email \
-      -H 'Content-Type: application/json' \
-      -d '{"email":"new-t@example.com","password":"password123","name":"New Therapist"}'
-    # should return 200 with session token
-    curl http://localhost:3001/health  # should still return ok
-    tmux kill-session -t vitapeak-api
-    ```
-12. Commit: `feat(api): Better-Auth + AuthGuard + TenantGuard + seed`.
-13. Update this progress file: Phase 4 → ✅, Phase 6 → 🟡, rewrite "Next concrete step".
+1. Create `apps/api/src/modules/clinics/` — controller + service. `POST /api/clinics/signup` (AuthGuard only, no TenantGuard). Body `{ name, firstName, lastName }`. Under `runWithSystemContext()` create `Clinic` then `Therapist` (role OWNER) linking `req.user.externalAuthId`. Return `{ clinicId, therapistId }`.
+2. Create `apps/api/src/modules/invites/` — controller + service:
+   - `POST /api/invites/create` (AuthGuard + TenantGuard, therapist-only): generate 32-byte token via `crypto.randomBytes(32)`, hash with `crypto.createHash('sha256')`, persist `Invite` row with `tokenHash`, `expiresAt = now + 7d`, `invitedRole: 'CLIENT'`, `invitedByTherapistId = req.tenant.dbUserId`. Call `mailService.sendInvite({...})` with the raw URL `${BETTER_AUTH_URL}/invite/${rawToken}`. When `process.env.MAIL_FALLBACK_RETURN_LINK === 'true'`, include `inviteUrl` in the response body.
+   - `POST /api/invites/accept` (public): body `{ token, email, password, firstName, lastName }`. Hash token, look up Invite where `tokenHash === hash AND acceptedAt IS NULL AND expiresAt > now`. If not found OR expired → 404. If `acceptedAt` already set → 410 Gone. Otherwise call `auth.api.signUpEmail` for the new user, create `Client` row (under `runWithSystemContext`) with `externalAuthId = user.id`, `clinicId = invite.clinicId`, `therapistId = invite.invitedByTherapistId`, mark invite `acceptedAt = now`. Return `{ token: signupToken, clientId }`.
+3. Create `apps/api/src/modules/me/` — `GET /api/me` (AuthGuard + TenantGuard). Return `{ user: { id: dbUserId, externalAuthId, email, role }, clinic: { id, name }, role }`.
+4. Add `MAIL_FALLBACK_RETURN_LINK=true` to `.env.example` (and `.env`).
+5. Wire `ClinicsModule`, `InvitesModule`, `MeModule` into `AppModule`.
+6. Commit: `feat(api): clinics + invites + me endpoints` (include progress update).
+7. Update this progress file: Phase 6 → ✅ + SHA, Phase 7 → 🟡.
 
 ---
 
