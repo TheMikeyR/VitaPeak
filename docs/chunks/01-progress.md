@@ -72,7 +72,7 @@ Resume at the "Next concrete step" section below.
 - `apps/api/src/db/prisma.service.ts` — `PrismaService` with `client: ExtendedPrismaClient`; `OnModuleInit` connects, `OnModuleDestroy` disconnects.
 - `apps/api/src/db/prisma.module.ts` — `@Global()` module exporting `PrismaService`. Wired into `AppModule`.
 
-### ✅ Phase 5 — MailModule + audit interceptor (commit `<filled at commit time>`)
+### ✅ Phase 5 — MailModule + audit interceptor (commit `eedde42`)
 
 - **Mail** (`apps/api/src/modules/mail/`):
   - `mail.types.ts` — `MailMessage`, `MailProvider`, `MAIL_PROVIDER` injection symbol.
