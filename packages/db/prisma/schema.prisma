@@ -1,0 +1,78 @@
+// VitaPeak — Prisma schema
+// Chunk 00 lays the foundation: Clinic, Therapist, Client + enums.
+// Domain expansion (CheckIn, PainPoint, BodyRegion, Exercise, PlanItem, ProgramTemplate,
+// AuditLog, ConsentRecord, HealthMetric, HealthSyncState) is deferred to later chunks
+// per PLAN.md § "Data model".
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Enums (foundational; remaining enums land in later chunks) ---
+
+enum TherapistRole {
+  OWNER
+  ADMIN
+  THERAPIST
+}
+
+// --- Core tenancy + identity ---
+// `externalAuthId` is the Better-Auth user id today; Keycloak `sub` post-migration (ADR 0002).
+// Every domain row carries `clinicId` to support multi-tenant isolation enforced in
+// NestJS guards + a Prisma client extension landing in chunk 01.
+
+model Clinic {
+  id         String      @id @default(cuid())
+  name       String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  therapists Therapist[]
+  clients    Client[]
+
+  @@map("clinic")
+}
+
+model Therapist {
+  id             String        @id @default(cuid())
+  clinicId       String
+  externalAuthId String        @unique
+  email          String        @unique
+  firstName      String
+  lastName       String
+  role           TherapistRole @default(THERAPIST)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  clinic         Clinic        @relation(fields: [clinicId], references: [id])
+  clients        Client[]
+
+  @@index([clinicId])
+  @@map("therapist")
+}
+
+model Client {
+  id             String    @id @default(cuid())
+  clinicId       String
+  therapistId    String
+  externalAuthId String?   @unique
+  email          String
+  firstName      String
+  lastName       String
+  dob            DateTime?
+  invitedAt      DateTime  @default(now())
+  acceptedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  clinic         Clinic    @relation(fields: [clinicId], references: [id])
+  therapist      Therapist @relation(fields: [therapistId], references: [id])
+
+  @@unique([clinicId, email])
+  @@index([clinicId])
+  @@index([therapistId])
+  @@map("client")
+}
