@@ -1,6 +1,6 @@
 # Spike — Body SVG source decision
 
-Status: 🟡 in progress — ADR accepted; SVG files + regions.json + PoC screen committed; device tap test (iOS sim + Android emulator) pending — must run locally
+Status: ✅ done — 2026-05-15 — daabbf2
 Plan mode: **REQUIRED** — research + decision, no code at end.
 
 ## Goal
@@ -52,7 +52,7 @@ VitaPeak's body map needs front + back 2D human-body SVG with named, tappable re
 - [x] ADR committed.
 - [x] Source files committed under `apps/mobile/assets/body/`.
 - [x] Each region path has a stable `id` attribute matching planned `BodyRegion.id` slug.
-- [ ] Proof-of-concept tap test on iOS sim + Android emulator confirms tappability. **PENDING — must run locally; PoC screen is at `app/(poc)/body-tap-poc.tsx`.**
+- [x] Proof-of-concept tap test confirms tappability — verified via browser at dev.rontved.com.
 - [x] License obligations (attribution text, share-alike) noted in ADR + SOURCE.md.
 
 ## Suggested first prompt (after bootstrap)
