@@ -72,6 +72,17 @@ Landed in chunk 00:
 - `pnpm format` / `pnpm format:check` — prettier
 - `docker compose -f infra/docker-compose.yml up -d` — bring up `postgres`, `minio`, `mailhog`, `redis`
 
+**Expo web on dev.rontved.com** (for browser-based PoC testing):
+
+```bash
+tmux new-session -d -s vitapeak-expo-web \
+  "cd apps/mobile && npx expo start --web --port 3000"
+```
+
+- nginx at `dev.rontved.com` proxies `localhost:3000` — Expo web must use `--port 3000`.
+- Navigate to `https://dev.rontved.com` (root) first, then use in-app links to reach sub-routes. Direct URL entry to sub-routes (e.g. `/body-tap-poc`) renders a blank page due to Expo Router's SPA routing on web.
+- Stop server: `tmux kill-session -t vitapeak-expo-web`
+
 Lands in later chunks (do not invent):
 
 - `pnpm db:seed` (chunk 01)
