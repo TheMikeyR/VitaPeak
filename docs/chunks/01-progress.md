@@ -195,7 +195,7 @@ pnpm --filter @vitapeak/api add prom-client jose
 
 `apps/web/middleware.ts` (next-intl cookie + Better-Auth session), `(auth)/login`, `(app)/onboarding/clinic`, `(app)/clients/invite`, public `invite/[token]`. All UI strings via `next-intl` reading from `@vitapeak/i18n`. Install: `next-intl`, `better-auth`, `@vitapeak/i18n`.
 
-### ✅ Phase 9 — Mobile (Expo) (commit pending — see HEAD)
+### ✅ Phase 9 — Mobile (Expo) (commit `8d421f9`)
 
 - `apps/mobile/src/i18n/index.ts` — `i18next` + `react-i18next`, device locale via `expo-localization`, resources imported as `da` / `en` re-exports from `@vitapeak/i18n` (mobile's tsconfig uses `moduleResolution: node` which ignores the `exports` field — re-exporting the JSON through the package's main entry sidesteps that).
 - `packages/i18n/src/index.ts` now re-exports `da` / `en` / `messages` from the JSON files (using `import ... with { type: 'json' }` since the package builds under NodeNext).
@@ -207,11 +207,17 @@ pnpm --filter @vitapeak/api add prom-client jose
 
 `src/auth/use-auth.ts` + `src/api/client.ts` (ofetch + bearer + 401 refresh) + `src/i18n/index.ts` (i18next + expo-localization). Routes: `(auth)/login`, `(client)/index`, `(therapist)/index`. `_layout.tsx` does role-aware redirect. Install: `expo-secure-store`, `expo-localization`, `i18next`, `react-i18next`, `ofetch`, `@vitapeak/i18n`.
 
-### 🟡 Phase 10 — API e2e tests (NEXT)
+### ✅ Phase 10 — API e2e tests (commit pending — see HEAD)
+
+- vitest 4 + `@nestjs/testing@10` + supertest installed in `apps/api`.
+- `apps/api/test/unit/tenancy.extension.spec.ts` — confirms missing tenant context throws, `runWithSystemContext` allows reads, and tenant context injects the clinic filter.
+- `apps/api/test/e2e/auth.e2e-spec.ts` — boots the full `AppModule`, mounts the Better-Auth handler the same way `main.ts` does, then walks the happy path: therapist signup → JWT exchange → clinic signup → invite create (asserts `inviteUrl` present when `MAIL_FALLBACK_RETURN_LINK=true`) → invite accept (201) + double-accept (410) → second therapist signup/clinic + `/api/me` returning the _new_ clinic id (cross-tenant guard active). One additional case corrupts the JWT signature and asserts `auth_failure_total{reason="invalid_signature"}` increments.
+- `AuthGuard` migrated from `createRemoteJWKSet` to `createLocalJWKSet` fed by `auth.api.getJwks()` — the remote variant required a real bound port; the in-process variant works in both dev and supertest.
+- `vitest.config.ts` uses `pool: 'forks'` + `maxWorkers/minWorkers: 1` (sequential, so DB writes do not race against each other).
 
 `apps/api/test/e2e/auth.e2e-spec.ts` — happy path, invite create/accept, cross-tenant 403, belt-and-braces extension throw, metric increment, Prisma extension missing-context throw. Need to install `@nestjs/testing`, `supertest` (likely not present).
 
-### ⬜ Phase 11 — Acceptance + PR
+### 🟡 Phase 11 — Acceptance + PR (NEXT)
 
 Run all chunk acceptance criteria. Update `docs/chunks/01-auth-and-tenancy.md` Status line. `git push origin claude/chunk-01-auth-and-tenancy && gh pr create`.
 

@@ -10,7 +10,8 @@
     "clean": "rm -rf dist .turbo",
     "lint": "eslint src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo \"no api tests yet (chunk 00)\" && exit 0"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
@@ -34,12 +35,16 @@
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
     "@nestjs/schematics": "^10.2.3",
+    "@nestjs/testing": "^10.4.22",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
     "@types/nodemailer": "^8.0.0",
+    "@types/supertest": "^7.2.0",
     "@vitapeak/config": "workspace:*",
+    "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.6"
   }
 }

@@ -5,7 +5,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { createRemoteJWKSet, errors as joseErrors, jwtVerify, type JWTPayload } from 'jose';
+import { createLocalJWKSet, errors as joseErrors, jwtVerify, type JWTPayload } from 'jose';
 import type { Request } from 'express';
 import { AUTH_TOKEN } from './auth.tokens.js';
 import type { Auth, VitapeakJwtClaims } from './better-auth.config.js';
@@ -27,16 +27,18 @@ declare module 'express-serve-static-core' {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private jwks?: ReturnType<typeof createRemoteJWKSet>;
+  private jwks?: ReturnType<typeof createLocalJWKSet>;
 
   constructor(@Inject(AUTH_TOKEN) private readonly auth: Auth) {}
 
-  private getJwks() {
+  private async getJwks() {
     if (!this.jwks) {
-      const baseURL = process.env.BETTER_AUTH_URL ?? 'http://localhost:3001';
-      this.jwks = createRemoteJWKSet(new URL('/auth/jwks', baseURL), {
-        cooldownDuration: 30_000,
-      });
+      // Fetch JWKS in-process via Better-Auth's API (no HTTP round-trip). The
+      // remote variant only worked when the API was bound to a real port —
+      // tests use supertest's in-memory server which has no port.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const jwks = (await (this.auth.api as any).getJwks()) as { keys: unknown[] };
+      this.jwks = createLocalJWKSet({ keys: jwks.keys as never });
     }
     return this.jwks;
   }
@@ -52,7 +54,8 @@ export class AuthGuard implements CanActivate {
 
     let payload: JWTPayload;
     try {
-      ({ payload } = await jwtVerify(token, this.getJwks(), {
+      const jwks = await this.getJwks();
+      ({ payload } = await jwtVerify(token, jwks, {
         issuer: 'vitapeak-better-auth',
       }));
     } catch (err) {
