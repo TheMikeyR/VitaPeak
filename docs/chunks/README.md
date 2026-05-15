@@ -14,11 +14,11 @@ This folder slices the master plan (`docs/PLAN.md`) into independent work packag
 
 ## Plan-mode policy (declared per chunk)
 
-| Value | AI behavior |
-|-------|-------------|
+| Value      | AI behavior                                                                       |
+| ---------- | --------------------------------------------------------------------------------- |
 | `REQUIRED` | AI invokes /plan immediately, surfaces decisions, waits for ExitPlanMode approval |
-| `OPTIONAL` | AI proceeds; enters plan mode only if ambiguity hit |
-| `SKIP` | AI proceeds directly without plan mode |
+| `OPTIONAL` | AI proceeds; enters plan mode only if ambiguity hit                               |
+| `SKIP`     | AI proceeds directly without plan mode                                            |
 
 ## Order & dependencies
 
@@ -47,36 +47,40 @@ Then follow the dep graph above.
 
 ## Chunk index
 
-| Chunk | Plan mode | Purpose |
-|-------|-----------|---------|
-| `spike-svg-source.md` | REQUIRED | Pick body SVG source + write ADR |
-| `00-scaffold.md` | SKIP | Monorepo, Docker stack (Postgres + MinIO + Mailhog + Redis, **no Keycloak**), blank apps |
-| `01-auth-and-tenancy.md` | REQUIRED | Better-Auth (in-process) + clinics + invite flow + Prisma tenancy extension. See ADR 0002, 0004. |
-| `02-body-map-check-in.md` | REQUIRED | Interactive body map + pain check-in (mobile) |
-| `03-pain-trends-web.md` | OPTIONAL | Therapist web: client list + charts + heatmap (extended in chunk 10 with health overlay) |
-| `04-plans-and-calendar.md` | REQUIRED | Plans + exercise library + calendar |
-| `05-program-templates.md` | REQUIRED | Templates + config resolution + module gating (includes `healthIntegration` block) |
-| `06-notifications.md` | OPTIONAL | Expo Push + MailProvider abstraction extended (Postmark/Resend) |
-| `07-gdpr-audit-consent.md` | REQUIRED | Audit log + consent (`health_data_sync` type) + export + hard-delete |
-| `08-therapist-mobile-companion.md` | OPTIONAL | Today/Alerts/Notes on mobile |
-| `09-hardening-and-deploy.md` | REQUIRED | CI/CD, Caddy, `/metrics` endpoint, Sentry hooks (DSN-gated), `MAIL_PROVIDER=console` on VPS, backups |
-| `10-health-integration.md` | REQUIRED | HealthKit + Health Connect read-only ingest. See ADR 0006. Not a pilot gate. |
+| Chunk                              | Plan mode | Purpose                                                                                              |
+| ---------------------------------- | --------- | ---------------------------------------------------------------------------------------------------- |
+| `spike-svg-source.md`              | REQUIRED  | Pick body SVG source + write ADR                                                                     |
+| `00-scaffold.md`                   | SKIP      | Monorepo, Docker stack (Postgres + MinIO + Mailhog + Redis, **no Keycloak**), blank apps             |
+| `01-auth-and-tenancy.md`           | REQUIRED  | Better-Auth (in-process) + clinics + invite flow + Prisma tenancy extension. See ADR 0002, 0004.     |
+| `02-body-map-check-in.md`          | REQUIRED  | Interactive body map + pain check-in (mobile)                                                        |
+| `03-pain-trends-web.md`            | OPTIONAL  | Therapist web: client list + charts + heatmap (extended in chunk 10 with health overlay)             |
+| `04-plans-and-calendar.md`         | REQUIRED  | Plans + exercise library + calendar                                                                  |
+| `05-program-templates.md`          | REQUIRED  | Templates + config resolution + module gating (includes `healthIntegration` block)                   |
+| `06-notifications.md`              | OPTIONAL  | Expo Push + MailProvider abstraction extended (Postmark/Resend)                                      |
+| `07-gdpr-audit-consent.md`         | REQUIRED  | Audit log + consent (`health_data_sync` type) + export + hard-delete                                 |
+| `08-therapist-mobile-companion.md` | OPTIONAL  | Today/Alerts/Notes on mobile                                                                         |
+| `09-hardening-and-deploy.md`       | REQUIRED  | CI/CD, Caddy, `/metrics` endpoint, Sentry hooks (DSN-gated), `MAIL_PROVIDER=console` on VPS, backups |
+| `10-health-integration.md`         | REQUIRED  | HealthKit + Health Connect read-only ingest. See ADR 0006. Not a pilot gate.                         |
 
 ## Chunk file format
 
-| Section | Purpose |
-|---------|---------|
-| **Status** | `⬜ not started` / `🟡 in progress` / `✅ done — date — sha` |
-| **Plan mode** | REQUIRED / OPTIONAL / SKIP — drives AI auto-behavior |
-| **Goal** | One-line outcome |
-| **Prerequisites** | Other chunks that must be merged first |
-| **Context for fresh session** | Self-contained background |
-| **Locked decisions** | Pre-made choices the AI must respect |
-| **Scope (in / out)** | Anti-scope-creep guardrails |
-| **Files to create / modify** | Concrete paths |
-| **Implementation notes** | Gotchas, library choices, patterns |
-| **Acceptance criteria** | Verifiable end-state checklist |
-| **Suggested first prompt** | Paste this after bootstrap into new session |
+| Section                       | Purpose                                                      |
+| ----------------------------- | ------------------------------------------------------------ |
+| **Status**                    | `⬜ not started` / `🟡 in progress` / `✅ done — date — sha` |
+| **Plan mode**                 | REQUIRED / OPTIONAL / SKIP — drives AI auto-behavior         |
+| **Goal**                      | One-line outcome                                             |
+| **Prerequisites**             | Other chunks that must be merged first                       |
+| **Context for fresh session** | Self-contained background                                    |
+| **Locked decisions**          | Pre-made choices the AI must respect                         |
+| **Scope (in / out)**          | Anti-scope-creep guardrails                                  |
+| **Files to create / modify**  | Concrete paths                                               |
+| **Implementation notes**      | Gotchas, library choices, patterns                           |
+| **Acceptance criteria**       | Verifiable end-state checklist                               |
+| **Suggested first prompt**    | Paste this after bootstrap into new session                  |
+
+## i18n per-chunk rule
+
+Every chunk that introduces UI strings **must** include locale file entries in `packages/i18n/src/locales/da.json` (primary, Danish) and `packages/i18n/src/locales/en.json` (English fallback). A chunk is not done until both files are updated. See ADR 0007.
 
 ## Master references
 

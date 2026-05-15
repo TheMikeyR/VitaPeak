@@ -55,23 +55,24 @@ All services run as Docker Compose on VPS for MVP. Reverse proxy: Caddy (auto-HT
 
 ## Stack (locked)
 
-| Layer | Choice | Reason |
-|-------|--------|--------|
-| Backend | **NestJS** (TS) + **ts-rest** | Quarkus-like structure (familiar), end-to-end types via ts-rest, also emits OpenAPI for future polyglot clients |
-| ORM | **Prisma** | Typed, mature, great DX with Postgres |
-| DB | **Postgres 16** | Locked. JSONB for config blobs, time-series fine until scale issue |
-| Auth | **Better-Auth** (in-process) — Keycloak-compatible JWT shape, migration path documented in ADR 0002 | TS-native, ~0 extra RAM, OIDC migration path preserved |
-| Mobile | **Expo (React Native)** | Single codebase iOS+Android, OTA via EAS Update, mature |
-| Web | **Next.js (App Router)** + Tailwind + shadcn/ui | Therapist dashboard, charts via Recharts |
-| Monorepo | **Turborepo + pnpm** | Standard for Expo + Next.js + shared TS packages |
-| Object store | **MinIO** (S3-compat, on VPS) | Swappable to R2/S3 later — same SDK |
-| Health data | **HealthKit (iOS)** + **Health Connect (Android)** read-only ingest (ADR 0006) | Native APIs only, no third-party wearable SDKs |
-| Email | **MailProvider abstraction** — `console` (default on VPS for MVP), `smtp` (Mailhog local dev), `postmark` / `resend` (later). ADR 0004 | Defer outbound delivery + sub-processor until pilot demands |
-| Push | **Expo Push** | Free, works iOS+Android via EAS |
-| Logs/metrics | **Emit-only: `pino` JSON logs to stdout + `/metrics` Prometheus endpoint.** No collectors on VPS for MVP. Grafana Cloud free-tier activation path documented in ADR 0003 | Save ~1.2 GB RAM on 8 GB VPS, no instrumentation debt at activation time |
-| Errors | **Sentry SDKs installed, env-gated init** (ADR 0005) — DSN unset on MVP VPS, activates on demand. SaaS only; self-host permanently rejected | Zero ops cost during MVP, fast activation when needed |
-| CI/CD | **GitHub Actions** → SSH/registry deploy to VPS | Standard |
-| E2E | **Maestro** (mobile), **Playwright** (web) | Lightweight, scriptable |
+| Layer        | Choice                                                                                                                                                                   | Reason                                                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Backend      | **NestJS** (TS) + **ts-rest**                                                                                                                                            | Quarkus-like structure (familiar), end-to-end types via ts-rest, also emits OpenAPI for future polyglot clients                   |
+| ORM          | **Prisma**                                                                                                                                                               | Typed, mature, great DX with Postgres                                                                                             |
+| DB           | **Postgres 16**                                                                                                                                                          | Locked. JSONB for config blobs, time-series fine until scale issue                                                                |
+| Auth         | **Better-Auth** (in-process) — Keycloak-compatible JWT shape, migration path documented in ADR 0002                                                                      | TS-native, ~0 extra RAM, OIDC migration path preserved                                                                            |
+| Mobile       | **Expo (React Native)**                                                                                                                                                  | Single codebase iOS+Android, OTA via EAS Update, mature                                                                           |
+| Web          | **Next.js (App Router)** + Tailwind + shadcn/ui                                                                                                                          | Therapist dashboard, charts via Recharts                                                                                          |
+| Monorepo     | **Turborepo + pnpm**                                                                                                                                                     | Standard for Expo + Next.js + shared TS packages                                                                                  |
+| Object store | **MinIO** (S3-compat, on VPS)                                                                                                                                            | Swappable to R2/S3 later — same SDK                                                                                               |
+| Health data  | **HealthKit (iOS)** + **Health Connect (Android)** read-only ingest (ADR 0006)                                                                                           | Native APIs only, no third-party wearable SDKs                                                                                    |
+| i18n         | **`next-intl`** (web) + **`i18next` + `react-i18next`** (mobile) — shared locale files in `packages/i18n` (ADR 0007)                                                     | Danish primary (`da`), English secondary (`en`); device-locale auto-detect; language switcher in both apps; code stays in English |
+| Email        | **MailProvider abstraction** — `console` (default on VPS for MVP), `smtp` (Mailhog local dev), `postmark` / `resend` (later). ADR 0004                                   | Defer outbound delivery + sub-processor until pilot demands                                                                       |
+| Push         | **Expo Push**                                                                                                                                                            | Free, works iOS+Android via EAS                                                                                                   |
+| Logs/metrics | **Emit-only: `pino` JSON logs to stdout + `/metrics` Prometheus endpoint.** No collectors on VPS for MVP. Grafana Cloud free-tier activation path documented in ADR 0003 | Save ~1.2 GB RAM on 8 GB VPS, no instrumentation debt at activation time                                                          |
+| Errors       | **Sentry SDKs installed, env-gated init** (ADR 0005) — DSN unset on MVP VPS, activates on demand. SaaS only; self-host permanently rejected                              | Zero ops cost during MVP, fast activation when needed                                                                             |
+| CI/CD        | **GitHub Actions** → SSH/registry deploy to VPS                                                                                                                          | Standard                                                                                                                          |
+| E2E          | **Maestro** (mobile), **Playwright** (web)                                                                                                                               | Lightweight, scriptable                                                                                                           |
 
 ---
 
@@ -89,7 +90,8 @@ VitaPeak/
 │   ├── types/               # Domain types
 │   ├── validation/          # Zod schemas
 │   ├── config/              # Shared eslint, tsconfig, tailwind preset
-│   └── ui/                  # Shared design tokens (mobile + web later)
+│   ├── ui/                  # Shared design tokens (mobile + web later)
+│   └── i18n/                # Locale JSON files (da.json primary, en.json secondary) + shared type helpers
 ├── infra/
 │   ├── docker-compose.yml   # Local + VPS deployment
 │   ├── caddy/Caddyfile
@@ -174,7 +176,7 @@ model BodyRegion {
   parentId    String?
   side        Side?                  // LEFT, RIGHT, CENTER
   displayLayer String                // "2d-front" | "2d-back" | "3d-mesh-x"
-  label       String
+  label       String                 // fallback English label; UI resolves via i18n key "bodyRegion.<id>"
   parent      BodyRegion? @relation("RegionHierarchy", fields: [parentId], references: [id])
   children    BodyRegion[] @relation("RegionHierarchy")
 }
@@ -298,6 +300,7 @@ Reuse: pre-seed `BodyRegion` table at install with ~40 regions (front+back, hier
 Result: **effective config** object. Mobile app reads on login → conditionally renders enabled modules. Backend guards reject writes to disabled modules.
 
 **Config shape**:
+
 ```jsonc
 {
   "modules": {
@@ -311,24 +314,25 @@ Result: **effective config** object. Mobile app reads on login → conditionally
     "videoDemos": true,
     "chat": false,
     "homeMetrics": false,
-    "healthIntegration": true
+    "healthIntegration": true,
   },
   "checkIn": {
-    "frequency": "daily",        // daily | weekly | onDemand | beforeWorkout | custom
+    "frequency": "daily", // daily | weekly | onDemand | beforeWorkout | custom
     "customCron": null,
     "requiredFields": ["painLevel", "bodyRegion"],
     "skipAllowed": true,
-    "reminderTimes": ["08:00", "20:00"]
+    "reminderTimes": ["08:00", "20:00"],
   },
   "healthIntegration": {
     "platforms": ["healthkit", "healthConnect"],
     "metrics": ["steps", "sleep", "restingHr", "hrv", "workouts"],
-    "syncFrequency": "onAppOpen"   // onAppOpen | hourly | daily — only onAppOpen for MVP
-  }
+    "syncFrequency": "onAppOpen", // onAppOpen | hourly | daily — only onAppOpen for MVP
+  },
 }
 ```
 
 **Seeded system templates** (`is_system_seed = true`):
+
 - Injury Recovery — daily, painCheckIn + bodyMap + plan + calendar
 - Strength Program — weekly, plan + calendar, no bodyMap
 - Post-Op — daily pre-workout, all clinical modules
@@ -338,9 +342,49 @@ Therapists clone/edit.
 
 ---
 
+## Internationalisation (i18n)
+
+See ADR 0007 for the full decision record.
+
+**Locale strategy**:
+
+- **Primary**: Danish (`da`) — default for all UI text, system-seeded labels, and push notification copy.
+- **Secondary**: English (`en`) — fallback locale if a key is missing in `da`.
+- **Future**: locale system is open to additional languages without code changes; add a JSON file and list the locale.
+
+**Coding rules**:
+
+- All code, variable names, comments, and commit messages stay in English.
+- UI strings (labels, button text, placeholders, error messages, notifications) are never hardcoded — always use translation keys.
+- Translation keys follow `namespace.dotted.path`, e.g. `checkIn.submit`, `bodyRegion.lumbar`, `error.required`.
+
+**Shared locale files** live in `packages/i18n/`:
+
+```
+packages/i18n/
+├── src/
+│   ├── locales/
+│   │   ├── da.json      # Danish (primary — must be complete)
+│   │   └── en.json      # English (fallback — must be complete)
+│   ├── config.ts        # Shared i18next config + language list
+│   └── index.ts         # Re-exports types + helpers
+```
+
+**Per-app runtime**:
+
+- **Web (Next.js)**: `next-intl` — reads from `packages/i18n/locales/`, server + client components both covered via App Router middleware.
+- **Mobile (Expo)**: `i18next` + `react-i18next` + `expo-localization` for device-locale detection at startup.
+
+**Language switcher**: available in both apps. Persisted to `AsyncStorage` (mobile) or a cookie (web). Falls back to Danish if device locale is not supported.
+
+**System-seeded content** (`BodyRegion.label`, `ProgramTemplate.name/description`, `Exercise.name/description`): the DB column holds the English fallback. UI resolves via translation key (e.g. `bodyRegion.<slug>`, `exercise.<id>.name`). Therapist-created content (clinic exercises, custom templates) is not translated — stored as-is in the language the therapist used.
+
+---
+
 ## MVP feature scope
 
 ### Therapist (web)
+
 - Signup → creates Clinic (one therapist = owner)
 - Invite clients (email link via configured `MailProvider`; on MVP VPS with `MAIL_PROVIDER=console`, the API returns the invite URL inline so the therapist shares it manually — ADR 0004)
 - Client list, status (last check-in, recent pain trend sparkline, flags)
@@ -351,12 +395,14 @@ Therapists clone/edit.
 - GDPR exports + deletion requests handler
 
 ### Therapist (mobile companion)
+
 - Today's clients
 - Quick view client status
 - Push alerts on flagged pain spikes
 - Quick note on a client
 
 ### Client (mobile)
+
 - Onboard via invite link, accept consent
 - Daily/configured check-in: body map tap → region → type → level → notes → submit
 - View plan calendar (today + week)
@@ -366,18 +412,19 @@ Therapists clone/edit.
 - Account: data export, delete account
 
 ### Cross-cutting MVP
+
 - Push reminders (Expo Push)
 - Email alerts to therapist (high pain, skipped check-ins)
 - Audit log on all writes
 - Consent records on signup + on policy version bump
 
 ### Explicitly OUT of MVP
+
 - Client web app (port later, ~2 weeks)
 - 3D body map (Phase 3)
 - Detailed sub-regions UI (Phase 2)
 - In-app chat
 - Billing/payments
-- Multi-language (English first, structure for i18n)
 - Third-party wearable SDKs (Garmin, Whoop, Fitbit, Oura). HealthKit + Health Connect are IN; native-platform-only.
 - Background health sync (foreground only for MVP, ADR 0006)
 - Health-data trend alerting / auto-correlation (visual overlay only for MVP)
@@ -386,15 +433,15 @@ Therapists clone/edit.
 
 Services that PLAN.md originally implied but MVP defers. Code path exists; the service is off until a trigger fires.
 
-| Service | MVP state | Trigger to activate | Activation cost |
-|---------|-----------|---------------------|-----------------|
-| Keycloak | Better-Auth in-process (ADR 0002) | SSO/SAML asked; > 500 users; second compliance audit | Run user-migration script + swap docker-compose service + flip JWT issuer env |
-| Outbound email delivery | `MAIL_PROVIDER=console`, invite link returned in API response (ADR 0004) | Pilot opens beyond friends; > 5 active invites/week | Set `MAIL_PROVIDER=postmark` + token env; unset `MAIL_FALLBACK_RETURN_LINK` |
-| Loki / Promtail / Prometheus / Grafana on VPS | None deployed; `/metrics` + pino JSON logs already emitted (ADR 0003) | Production crash with no `docker logs` lead; sustained > 100 req/s; second clinic onboards | Add `grafana-agent` container, point at `api:3001/metrics` + Docker stdout, configure Grafana Cloud DSN |
-| Sentry | SDKs installed, init no-op without `SENTRY_DSN` (ADR 0005) | Pilot opens to non-friend users; unreproducible production crash > 24 h; store submission | Set `SENTRY_DSN` env + verify PII scrubbing + upload source maps in CI |
-| HealthKit ingest (iOS) | Chunk 10 code committed, may ship dark if no physical iPhone available | Physical iPhone available for QA | Enable HealthKit capability in Xcode + App Store Connect; submit privacy nutrition labels |
-| Background health sync | Foreground only | iOS BGTaskScheduler reliability acceptable; > 50% of users open app < daily | Wire `HKObserverQuery` + Health Connect background read with extra Play declaration |
-| Postgres RLS | Tenancy enforced via NestJS guard + Prisma middleware (ADR pending) | First tenancy bug found; second backend dev joins; auditor asks | Add `clinic_id` policy per table; keep guard as belt-and-braces |
+| Service                                       | MVP state                                                                | Trigger to activate                                                                        | Activation cost                                                                                         |
+| --------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Keycloak                                      | Better-Auth in-process (ADR 0002)                                        | SSO/SAML asked; > 500 users; second compliance audit                                       | Run user-migration script + swap docker-compose service + flip JWT issuer env                           |
+| Outbound email delivery                       | `MAIL_PROVIDER=console`, invite link returned in API response (ADR 0004) | Pilot opens beyond friends; > 5 active invites/week                                        | Set `MAIL_PROVIDER=postmark` + token env; unset `MAIL_FALLBACK_RETURN_LINK`                             |
+| Loki / Promtail / Prometheus / Grafana on VPS | None deployed; `/metrics` + pino JSON logs already emitted (ADR 0003)    | Production crash with no `docker logs` lead; sustained > 100 req/s; second clinic onboards | Add `grafana-agent` container, point at `api:3001/metrics` + Docker stdout, configure Grafana Cloud DSN |
+| Sentry                                        | SDKs installed, init no-op without `SENTRY_DSN` (ADR 0005)               | Pilot opens to non-friend users; unreproducible production crash > 24 h; store submission  | Set `SENTRY_DSN` env + verify PII scrubbing + upload source maps in CI                                  |
+| HealthKit ingest (iOS)                        | Chunk 10 code committed, may ship dark if no physical iPhone available   | Physical iPhone available for QA                                                           | Enable HealthKit capability in Xcode + App Store Connect; submit privacy nutrition labels               |
+| Background health sync                        | Foreground only                                                          | iOS BGTaskScheduler reliability acceptable; > 50% of users open app < daily                | Wire `HKObserverQuery` + Health Connect background read with extra Play declaration                     |
+| Postgres RLS                                  | Tenancy enforced via NestJS guard + Prisma middleware (ADR pending)      | First tenancy bug found; second backend dev joins; auditor asks                            | Add `clinic_id` policy per table; keep guard as belt-and-braces                                         |
 
 ---
 
@@ -419,6 +466,7 @@ Not pursuing MDR class I in MVP — wellness/lifestyle posture documented. Archi
 ## Deployment
 
 ### MVP (VPS Docker Compose)
+
 - **Target VPS: 8 GB RAM** (soft constraint). Cuts taken to fit (ADR 0002–0005):
   - **Containers running on VPS for MVP**: `caddy`, `api` (NestJS, Better-Auth in-process), `web` (Next.js), `postgres`, `minio`, `redis`.
   - **Containers explicitly NOT on VPS for MVP**: `keycloak` (replaced by Better-Auth, ADR 0002), `loki` + `promtail` + `prometheus` + `grafana` (emit-only telemetry, ADR 0003), `sentry` (SaaS only if activated, never self-host, ADR 0005), `mailer` / `postal` (provider abstraction, no outbound on VPS by default, ADR 0004), `mailhog` (local dev only).
@@ -429,6 +477,7 @@ Not pursuing MDR class I in MVP — wellness/lifestyle posture documented. Archi
 - Backup: nightly `pg_dump` encrypted + uploaded to MinIO, then mirrored to offsite S3-compat (Backblaze B2 or equivalent — choice surfaced in chunk 09 plan mode).
 
 ### Portability (future cloud migration)
+
 - All apps stateless, configured via env (12-factor).
 - DB external → swap to managed Neon/RDS by changing `DATABASE_URL`.
 - Object storage SDK points at MinIO endpoint → swap to R2/S3 by changing endpoint + bucket.
@@ -436,6 +485,7 @@ Not pursuing MDR class I in MVP — wellness/lifestyle posture documented. Archi
 - Targets when scaling: Fly.io, Render, or AWS ECS/EKS. No code change needed.
 
 ### Mobile distribution
+
 - Single Expo app, role login.
 - One store listing each: App Store + Play Store.
 - TestFlight + Play Internal Testing for pilot physiotherapists.
@@ -470,19 +520,19 @@ Not pursuing MDR class I in MVP — wellness/lifestyle posture documented. Archi
 
 ## Milestones (rough)
 
-| # | Goal | Weeks |
-|---|------|-------|
-| 0 | Repo scaffold, Turborepo, Docker Compose (Postgres + MinIO + Mailhog + Redis), Prisma schema, seed | 1 |
-| 1 | Better-Auth (in-process) wired across API + web (Auth.js v5 client) + Expo (OIDC-shaped flow); clinic/therapist/client invite; Prisma tenancy middleware | 1.5 |
-| 2 | Body map SVG component + region taxonomy + check-in submission (Expo) | 1.5 |
-| 3 | Pain trend charts + body-map heatmap (web) | 1 |
-| 4 | Plan builder (web) + plan calendar (Expo) + plan completion | 2 |
-| 5 | Program templates + config resolution + module gating | 1 |
-| 6 | Push reminders (Expo Push) + email via MailProvider abstraction (`console` default on VPS) | 1 |
-| 7 | Audit log + consent + GDPR export/delete endpoints | 1 |
-| 8 | Therapist mobile companion features | 1 |
-| 9 | E2E test suite, hardening, CI/CD, Caddy, `/metrics` endpoint, Sentry hooks (DSN-gated), pilot deploy to VPS | 1.5 |
-| 10 | HealthKit + Health Connect ingest (foreground sync) + web overlay | 1 |
+| #   | Goal                                                                                                                                                     | Weeks |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| 0   | Repo scaffold, Turborepo, Docker Compose (Postgres + MinIO + Mailhog + Redis), Prisma schema, seed                                                       | 1     |
+| 1   | Better-Auth (in-process) wired across API + web (Auth.js v5 client) + Expo (OIDC-shaped flow); clinic/therapist/client invite; Prisma tenancy middleware | 1.5   |
+| 2   | Body map SVG component + region taxonomy + check-in submission (Expo)                                                                                    | 1.5   |
+| 3   | Pain trend charts + body-map heatmap (web)                                                                                                               | 1     |
+| 4   | Plan builder (web) + plan calendar (Expo) + plan completion                                                                                              | 2     |
+| 5   | Program templates + config resolution + module gating                                                                                                    | 1     |
+| 6   | Push reminders (Expo Push) + email via MailProvider abstraction (`console` default on VPS)                                                               | 1     |
+| 7   | Audit log + consent + GDPR export/delete endpoints                                                                                                       | 1     |
+| 8   | Therapist mobile companion features                                                                                                                      | 1     |
+| 9   | E2E test suite, hardening, CI/CD, Caddy, `/metrics` endpoint, Sentry hooks (DSN-gated), pilot deploy to VPS                                              | 1.5   |
+| 10  | HealthKit + Health Connect ingest (foreground sync) + web overlay                                                                                        | 1     |
 
 **Target MVP**: ~13 weeks nominal, realistic 16–20 weeks solo. Health integration (chunk 10) is positioned last and is **not a pilot gate** — if it slips, MVP still ships without it.
 
@@ -507,6 +557,11 @@ package.json
 packages/db/prisma/schema.prisma
 packages/db/prisma/seed.ts
 packages/db/src/index.ts
+
+packages/i18n/src/locales/da.json
+packages/i18n/src/locales/en.json
+packages/i18n/src/config.ts
+packages/i18n/src/index.ts
 
 packages/contracts/src/index.ts
 packages/contracts/src/clients.ts
