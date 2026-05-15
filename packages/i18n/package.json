@@ -1,5 +1,5 @@
 {
-  "name": "@vitapeak/db",
+  "name": "@vitapeak/i18n",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,31 +9,27 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    },
+    "./locales/da.json": "./src/locales/da.json",
+    "./locales/en.json": "./src/locales/en.json"
   },
   "files": [
     "dist",
-    "prisma"
+    "src/locales"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist .turbo",
     "lint": "eslint src",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "generate": "prisma generate",
-    "migrate": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy",
-    "studio": "prisma studio",
-    "format": "prisma format",
-    "seed": "tsx prisma/seed.ts"
-  },
-  "dependencies": {
-    "@prisma/client": "^6.2.1"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@vitapeak/config": "workspace:*",
-    "prisma": "^6.2.1",
     "typescript": "^5.7.3"
   }
 }

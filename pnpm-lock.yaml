@@ -269,6 +269,15 @@ importers:
         specifier: ^5.7.3
         version: 5.7.3
 
+  packages/i18n:
+    devDependencies:
+      '@vitapeak/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.7.3
+        version: 5.7.3
+
   packages/types:
     devDependencies:
       '@vitapeak/config':

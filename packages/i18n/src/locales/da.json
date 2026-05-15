@@ -1,0 +1,67 @@
+{
+  "common": {
+    "signOut": "Log af",
+    "loading": "Indlæser…",
+    "cancel": "Annuller",
+    "save": "Gem",
+    "continue": "Fortsæt"
+  },
+  "auth": {
+    "login": {
+      "title": "Log på",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Adgangskode",
+      "submit": "Log på",
+      "magicLinkCta": "Send mig et magisk link",
+      "magicLinkPending": "Tjek din indbakke for at fortsætte",
+      "noAccountCta": "Har du ingen konto? Opret en"
+    },
+    "signup": {
+      "title": "Opret konto",
+      "firstNameLabel": "Fornavn",
+      "lastNameLabel": "Efternavn",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Adgangskode",
+      "submit": "Opret konto",
+      "hasAccountCta": "Har du allerede en konto? Log på"
+    }
+  },
+  "clinic": {
+    "onboarding": {
+      "title": "Opret din klinik",
+      "description": "Giv din klinik et navn for at komme i gang.",
+      "nameLabel": "Klinikkens navn",
+      "submit": "Fortsæt"
+    }
+  },
+  "invite": {
+    "send": {
+      "title": "Inviter klient",
+      "emailLabel": "Klientens e-mail",
+      "firstNameLabel": "Fornavn",
+      "lastNameLabel": "Efternavn",
+      "submit": "Send invitation",
+      "emailSent": "Invitation sendt",
+      "copyLinkCta": "Kopiér invitationslink",
+      "linkCopied": "Link kopieret"
+    },
+    "accept": {
+      "title": "Accepter invitation",
+      "description": "Vælg en adgangskode for at oprette din konto.",
+      "passwordLabel": "Adgangskode",
+      "submit": "Opret min konto",
+      "expired": "Denne invitation er udløbet",
+      "used": "Denne invitation er allerede brugt",
+      "invalid": "Invitationslinket er ugyldigt"
+    }
+  },
+  "error": {
+    "required": "Dette felt er påkrævet",
+    "invalidEmail": "Ugyldig e-mailadresse",
+    "passwordTooShort": "Adgangskoden skal være mindst 8 tegn",
+    "invalidCredentials": "Forkert e-mail eller adgangskode",
+    "serverError": "Noget gik galt. Prøv igen.",
+    "unauthorized": "Du har ikke adgang",
+    "forbidden": "Adgang nægtet"
+  }
+}
