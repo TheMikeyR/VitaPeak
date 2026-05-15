@@ -37,12 +37,12 @@ Target shape per `docs/PLAN.md`:
 
 - **Monorepo**: Turborepo + pnpm. `apps/{api,web,mobile}` + `packages/{db,contracts,types,validation,config,ui}` + `infra/`.
 - **Backend**: NestJS + ts-rest + Prisma + Postgres 16. ts-rest contracts are the source of truth for API shape and are shared with web + mobile.
-- **Web**: Next.js App Router (therapist primary). Auth.js v5 with Keycloak provider.
-- **Mobile**: Expo (single app, role-aware after Keycloak login). Client gets full feature set; therapist gets companion features only.
-- **Auth**: Keycloak (OIDC). Realm `vitapeak` with `vitapeak-api` (bearer) + `vitapeak-web` (confidential) + `vitapeak-mobile` (public PKCE) clients. Roles: `therapist`, `client`.
+- **Web**: Next.js App Router (therapist primary). Better-Auth React client for session management.
+- **Mobile**: Expo (single app, role-aware after login). Client gets full feature set; therapist gets companion features only.
+- **Auth**: Better-Auth in-process inside NestJS API (ADR 0002 — Keycloak rejected for MVP). JWT shape is Keycloak-compatible (`sub`, `email`, `realm_access.roles`) so guards need no change when Keycloak is adopted later. Roles: `therapist`, `client`.
 - **Multi-tenant from day one**: every domain row carries `clinicId`. Tenant isolation enforced in NestJS guards.
 - **Program templates**: configuration JSON resolves through chain (system → clinic → therapist → template → per-client override) → effective config gates which modules render on mobile and which writes the backend accepts.
-- **Local infra**: Docker Compose for `postgres`, `keycloak`, `minio`, `mailhog`, `redis`.
+- **Local infra**: Docker Compose for `postgres`, `minio`, `mailhog`, `redis`. No Keycloak container (ADR 0002).
 - **Deploy**: personal VPS via Docker Compose + Caddy auto-HTTPS. Portable to cloud later (12-factor, stateless containers, env-config).
 
 ## Hard rules for Claude in this repo
@@ -56,6 +56,7 @@ Target shape per `docs/PLAN.md`:
 - **For non-obvious design choices** not covered by PLAN.md, draft an ADR under `docs/decisions/` using `docs/decisions/_template.md` with `Status: Proposed` and wait for acceptance before relying on it. Once accepted, never edit — supersede via a new ADR that links back.
 - **Commits**: Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, etc.) — observed pattern in git log.
 - **Line endings**: LF in repo (enforced by `.gitattributes`). Do not change.
+- **`.npmrc` — do not remove `shamefully-hoist=true`**. Expo's Metro bundler requires hoisted `node_modules` to resolve transitive dependencies across the pnpm virtual store. Removing it breaks `expo start --web`.
 
 ## Commands
 
