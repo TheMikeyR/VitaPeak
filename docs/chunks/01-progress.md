@@ -182,7 +182,7 @@ pnpm --filter @vitapeak/api add prom-client jose
 
 `packages/contracts/src/{auth,clinics,invites}.ts`. Install `@ts-rest/nest`. Bind to controllers.
 
-### ✅ Phase 8 — Web (Next.js) (commit pending — see HEAD)
+### ✅ Phase 8 — Web (Next.js) (commit `bf54226`)
 
 - `apps/web/middleware.ts` — gates non-public paths on the `better-auth.session_token` cookie; bounces to `/login?next=<path>` when absent.
 - `apps/web/next.config.mjs` — rewrites `/auth/*` and `/api/*` to the API origin (same-origin so Better-Auth cookies land on the web host) + `transpilePackages` includes `@vitapeak/i18n` and `@vitapeak/contracts` + `createNextIntlPlugin('./i18n/request.ts')` wrapper.
@@ -195,11 +195,19 @@ pnpm --filter @vitapeak/api add prom-client jose
 
 `apps/web/middleware.ts` (next-intl cookie + Better-Auth session), `(auth)/login`, `(app)/onboarding/clinic`, `(app)/clients/invite`, public `invite/[token]`. All UI strings via `next-intl` reading from `@vitapeak/i18n`. Install: `next-intl`, `better-auth`, `@vitapeak/i18n`.
 
-### 🟡 Phase 9 — Mobile (Expo) (NEXT)
+### ✅ Phase 9 — Mobile (Expo) (commit pending — see HEAD)
+
+- `apps/mobile/src/i18n/index.ts` — `i18next` + `react-i18next`, device locale via `expo-localization`, resources imported as `da` / `en` re-exports from `@vitapeak/i18n` (mobile's tsconfig uses `moduleResolution: node` which ignores the `exports` field — re-exporting the JSON through the package's main entry sidesteps that).
+- `packages/i18n/src/index.ts` now re-exports `da` / `en` / `messages` from the JSON files (using `import ... with { type: 'json' }` since the package builds under NodeNext).
+- `apps/mobile/src/auth/use-auth.ts` — session + JWT stored in `expo-secure-store`, refresh on demand via `/auth/token`; derives role from the JWT's `realm_access.roles[0]`.
+- `apps/mobile/src/api/client.ts` — `ofetch` wrapper with bearer header + 401-triggered JWT refresh using the persisted session token.
+- `apps/mobile/app/_layout.tsx` — role-aware redirect: no session → `/(auth)/login`; therapist → `/(therapist)`; client → `/(client)`; authenticated-with-no-role bounces back to login.
+- `apps/mobile/app/(auth)/login.tsx`, `(therapist)/index.tsx`, `(client)/index.tsx` — minimal screens wired to translations.
+- Mobile `tsconfig.json` enables `resolveJsonModule` + `esModuleInterop`.
 
 `src/auth/use-auth.ts` + `src/api/client.ts` (ofetch + bearer + 401 refresh) + `src/i18n/index.ts` (i18next + expo-localization). Routes: `(auth)/login`, `(client)/index`, `(therapist)/index`. `_layout.tsx` does role-aware redirect. Install: `expo-secure-store`, `expo-localization`, `i18next`, `react-i18next`, `ofetch`, `@vitapeak/i18n`.
 
-### ⬜ Phase 10 — API e2e tests
+### 🟡 Phase 10 — API e2e tests (NEXT)
 
 `apps/api/test/e2e/auth.e2e-spec.ts` — happy path, invite create/accept, cross-tenant 403, belt-and-braces extension throw, metric increment, Prisma extension missing-context throw. Need to install `@nestjs/testing`, `supertest` (likely not present).
 
