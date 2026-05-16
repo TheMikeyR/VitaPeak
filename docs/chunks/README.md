@@ -78,6 +78,17 @@ Then follow the dep graph above.
 | **Acceptance criteria**       | Verifiable end-state checklist                               |
 | **Suggested first prompt**    | Paste this after bootstrap into new session                  |
 
+## Progress tracking (token-budget survival)
+
+Every chunk gets a live phase-progress file at `docs/chunks/<NN>-progress.md` — created from `_progress-template.md` after plan approval (or immediately for `Plan mode: SKIP` chunks). Purpose: survive a session running out of context mid-chunk.
+
+- **Phase = commit unit.** Each phase ends with a commit; the same commit updates the progress file (move phase → ✅ + SHA, move next phase → 🟡, refresh `Next concrete step`).
+- **Cold resume**: a fresh session reads `<NN>-progress.md` and picks up at "Next concrete step" without re-planning.
+- **Budget gate**: if the next phase looks larger than the remaining context budget, the AI pauses and updates the progress file BEFORE starting it. Never start a phase you cannot finish + commit + log.
+- **Bootstrap enforces this** — see `docs/SESSION_BOOTSTRAP.md` "Progress tracking" rule.
+
+Chunk 01 (`01-progress.md`) is the reference example.
+
 ## i18n per-chunk rule
 
 Every chunk that introduces UI strings **must** include locale file entries in `packages/i18n/src/locales/da.json` (primary, Danish) and `packages/i18n/src/locales/en.json` (English fallback). A chunk is not done until both files are updated. See ADR 0007.
@@ -91,4 +102,4 @@ Every chunk that introduces UI strings **must** include locale file entries in `
 
 ## Status tracking
 
-Mark chunk done by editing the chunk file's `Status:` top line: `Status: ✅ done — YYYY-MM-DD — <commit-sha>`. Or use GitHub Projects / Linear if preferred.
+Mark chunk done by editing the chunk file's `Status:` top line: `Status: ✅ done — YYYY-MM-DD — <commit-sha>`. Mid-flight phase state lives in `<NN>-progress.md` (see "Progress tracking" above). Or use GitHub Projects / Linear if preferred.
