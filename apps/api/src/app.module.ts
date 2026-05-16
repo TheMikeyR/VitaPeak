@@ -5,6 +5,8 @@ import { PrismaModule } from './db/prisma.module.js';
 import { MailModule } from './modules/mail/mail.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { BetterAuthModule } from './auth/better-auth.module.js';
+import { BodyRegionsModule } from './modules/body-regions/body-regions.module.js';
+import { CheckInsModule } from './modules/check-ins/check-ins.module.js';
 import { ClinicsModule } from './modules/clinics/clinics.module.js';
 import { InvitesModule } from './modules/invites/invites.module.js';
 import { MeModule } from './modules/me/me.module.js';
@@ -29,6 +31,8 @@ import { MeModule } from './modules/me/me.module.js';
     ClinicsModule,
     InvitesModule,
     MeModule,
+    BodyRegionsModule,
+    CheckInsModule,
   ],
 })
 export class AppModule {}

@@ -5,7 +5,7 @@ Live progress log for `docs/chunks/02-body-map-check-in.md`. **Updated after eve
 - **Branch**: `claude/chunk-02-body-map`
 - **Static plan**: inline (see "Locked decisions resolved in plan mode" + "Phase progress" below — no separate plan file)
 - **Last update**: 2026-05-16
-- **Current phase**: 3 (`API check-ins + body-regions modules`)
+- **Current phase**: 4 (`API e2e tests`)
 - **Token-budget hint**: medium
 
 ---
@@ -41,7 +41,8 @@ Resume at the "Next concrete step" section.
 
 ## Implementation deviations from chunk spec
 
-- (none yet)
+- **`CheckInsService` takes `clinicId` explicitly** (not relying on the Prisma tenancy extension to inject it on create). Reason: Prisma's `defineExtension` with `$allOperations` typed as `any` erases the model-specific return type, and forces the `data:` shape to include `clinicId` statically. Mirrors how `ClinicsService` passes `clinicId` to `Therapist.create` in chunk 01. Tenancy extension still acts as a belt-and-braces guard for `findMany`/`findUnique` (the read paths).
+- **`prisma.client.checkIn.create({ include: { painPoints: true } })` cast at the call site** to a hand-narrowed `CheckInWithPoints` shape — the extension's `any` query type erases the include-narrowed return.
 
 ---
 
@@ -56,18 +57,21 @@ Resume at the "Next concrete step" section.
 - `apps/api/src/db/tenancy.extension.ts` `TENANT_BOUND_MODELS` now includes `CheckIn`. `PainPoint` reaches tenancy transitively via `CheckIn` joins; `BodyRegion` is system-shared and bypasses.
 - Verified: `pnpm db:seed` reports 44 regions + client created. `pnpm typecheck` passes across all 12 workspace tasks.
 
-### ✅ Phase 2 — ts-rest contracts (commit `<PHASE2_SHA>`)
+### ✅ Phase 2 — ts-rest contracts (commit `748cc1d`)
 
 - `packages/contracts/src/body-regions.ts` — `SideSchema`, `BodyRegionItemSchema`, `bodyRegionsListRoute` (`GET /api/body-regions`). `bodyRegionsContract.list`.
 - `packages/contracts/src/check-ins.ts` — `PainTypeSchema`, `PainPointInputSchema`, `CreateCheckInBodySchema` (mood 1–5, notes ≤2000, ≥1 painPoints; level 0–10), `CheckInItemSchema`, `ListCheckInsQuerySchema` (from/to/limit coerce-int 1–200). Routes: `POST /api/check-ins` (201/400/401/403), `GET /api/check-ins` (200/401/403).
 - `packages/contracts/src/index.ts` registers `bodyRegions` + `checkIns` sub-routers and re-exports everything.
 - Verified: `pnpm --filter @vitapeak/contracts build` + `pnpm typecheck` (12/12 green).
 
-### 🟡 Phase 3 — API check-ins + body-regions modules (NEXT)
+### ✅ Phase 3 — API check-ins + body-regions modules (commit `<PHASE3_SHA>`)
 
-`apps/api/src/modules/{check-ins,body-regions}/`. `@TsRestHandler(route)` + `tsRestHandler(route, async ({ body }) => ...)`. `AuthGuard` + `TenantGuard`. `@Audit('checkin.submit' | 'checkin.list')`. Wire into `AppModule`.
+- `apps/api/src/modules/body-regions/` — `BodyRegionsController` with `@TsRestHandler(bodyRegionsListRoute)`. `AuthGuard` only (BodyRegion is system-shared; not in `TENANT_BOUND_MODELS` so tenancy extension bypasses). Returns 44 regions ordered by `[displayLayer, id]`.
+- `apps/api/src/modules/check-ins/` — `CheckInsService` (`createForClient`, `listForClient`) + `CheckInsController` (`AuthGuard` + `TenantGuard` + `@Audit('checkin.submit' | 'checkin.list')`). Role-check rejects therapist callers with 403. `createForClient` pre-validates every `bodyRegionId` exists → 400 with the missing ids listed. CheckIn create receives `clinicId` + `clientId` explicitly; nested `painPoints.create` for each pain point.
+- `AppModule` imports `BodyRegionsModule` + `CheckInsModule`.
+- Verified: `pnpm typecheck` (12/12 green). Live smoke deferred to Phase 4's supertest-based e2e.
 
-### ⬜ Phase 4 — API e2e tests
+### 🟡 Phase 4 — API e2e tests (NEXT)
 
 `apps/api/test/e2e/check-in.e2e-spec.ts`: happy path (POST + GET), validation 400s (level=11, unknown regionId, empty painPoints), cross-tenant 403 (client A cannot see client B's check-ins), `GET /body-regions` returns 44 rows.
 
@@ -95,23 +99,18 @@ Run all chunk acceptance criteria. Update `docs/chunks/02-body-map-check-in.md` 
 
 ## Next concrete step
 
-**Start Phase 3 — API check-ins + body-regions modules.**
+**Start Phase 4 — API e2e tests.**
 
-1. Create `apps/api/src/modules/body-regions/`:
-   - `body-regions.module.ts` (Module with controller).
-   - `body-regions.controller.ts` — `@TsRestHandler(bodyRegionsListRoute)` `list()` method. Use `runWithSystemContext` so BodyRegion (system-shared) bypasses tenancy. Or just call directly — BodyRegion is in the bypass set (not in `TENANT_BOUND_MODELS`). `AuthGuard` only (no `TenantGuard` — list is global; any authenticated user can read).
-2. Create `apps/api/src/modules/check-ins/`:
-   - `check-ins.service.ts` — `createForClient(client, body)` and `listForClient(client, query)`. `createForClient`: validate every `bodyRegionId` exists (`prisma.bodyRegion.findMany({ where: { id: { in: ids } } })`; if mismatch → throw 400). Then `prisma.checkIn.create({ data: { clientId: client.id, occurredAt: body.occurredAt ?? new Date(), mood, notes, painPoints: { create: body.painPoints.map(...) } }, include: { painPoints: true } })`. Tenancy extension auto-injects `clinicId`. `listForClient`: `prisma.checkIn.findMany({ where: { clientId: client.id, occurredAt: { gte: from, lte: to } }, orderBy: { occurredAt: 'desc' }, take: limit ?? 50, include: { painPoints: true } })`.
-   - `check-ins.controller.ts` — `@TsRestHandler(createCheckInRoute)` and `@TsRestHandler(listCheckInsRoute)`. `AuthGuard` + `TenantGuard` + `@Audit('checkin.submit')` / `@Audit('checkin.list')`. Resolve the Client row from `req.tenant` (role must be `client`; if therapist hits this → 403).
-   - `check-ins.module.ts`.
-3. Wire `BodyRegionsModule` + `CheckInsModule` into `AppModule`.
-4. Smoke test:
-   - `pnpm db:seed` (idempotent).
-   - `pnpm --filter @vitapeak/api dev` then `curl /api/body-regions` with a JWT for the seeded client → should return 44 regions.
-   - `curl -X POST /api/check-ins` with valid body → 201. Invalid bodyRegionId → 400. Therapist JWT → 403.
-5. `pnpm typecheck` must stay green.
-6. Commit: `feat(api): check-ins + body-regions endpoints` — include this progress file update.
-7. Update this file: Phase 3 → ✅ + SHA, Phase 4 → 🟡 with first 1–3 sub-steps.
+1. Create `apps/api/test/e2e/check-in.e2e-spec.ts` (model after the existing `auth.e2e-spec.ts`):
+   - `beforeAll`: build `AppModule` testing module, mount Better-Auth handler the way `main.ts` does, run `pnpm db:seed` (or recreate equivalent rows in-test).
+   - **Body regions**: GET `/api/body-regions` with the seeded client's JWT → 200, `regions.length === 44`. Without JWT → 401.
+   - **Happy path**: sign up a fresh client via invite, exchange JWT, POST `/api/check-ins` with 2 pain points → 201, returned body has `painPoints.length === 2`. GET `/api/check-ins` → 200, `checkIns.length === 1`, sorted desc by `occurredAt`.
+   - **Validation**: POST with `level: 11` → 400. POST with `bodyRegionId: 'nonexistent'` → 400 with message naming the unknown ids. POST with `painPoints: []` → 400.
+   - **Cross-tenant**: in clinic B, sign up another therapist + client. Client B GET `/api/check-ins` → 200, empty array (does not see client A's data). Client B's CheckIn ID against client A's filter set → also empty.
+   - **Role gating**: therapist JWT POST `/api/check-ins` → 403. Therapist JWT GET `/api/check-ins` → 403.
+2. Run `pnpm --filter @vitapeak/api test:e2e` (uses vitest, sequential `pool: 'forks'`, `maxWorkers: 1`).
+3. Commit: `test(api): e2e for check-ins + body-regions` — include this progress file update.
+4. Update this file: Phase 4 → ✅ + SHA, Phase 5 → 🟡 with first 1–3 sub-steps.
 
 ---
 
