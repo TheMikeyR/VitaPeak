@@ -68,6 +68,55 @@
     "front": "Forside",
     "back": "Bagside"
   },
+  "checkIn": {
+    "step": "Trin {{current}} af {{total}}",
+    "saved": "Check-in gemt",
+    "selectedCount_one": "{{count}} område valgt",
+    "selectedCount_other": "{{count}} områder valgt",
+    "home": {
+      "title": "Hej",
+      "subtitle": "Notér hvordan du har det i dag.",
+      "newCheckIn": "Nyt check-in",
+      "viewHistory": "Se historik"
+    },
+    "selectRegions": {
+      "title": "Hvor gør det ondt?",
+      "subtitle": "Tryk på et eller flere områder på kroppen."
+    },
+    "details": {
+      "title": "Beskriv smerten",
+      "subtitle": "For hvert område: vælg type og angiv intensitet.",
+      "painType": "Type",
+      "level": "Niveau",
+      "notes": "Noter (valgfri)",
+      "notesPlaceholder": "Skriv hvad du ønsker at tilføje",
+      "empty": "Ingen områder valgt.",
+      "backToSelect": "Vælg områder"
+    },
+    "review": {
+      "title": "Gennemse og send",
+      "painPoints": "Smertepunkter",
+      "mood": "Humør (valgfri)",
+      "notes": "Generelle noter (valgfri)",
+      "notesPlaceholder": "Tilføj noget relevant",
+      "submit": "Send check-in",
+      "submitFailed": "Kunne ikke sende"
+    }
+  },
+  "painType": {
+    "BURNING": "Brændende",
+    "SHARP": "Skarp",
+    "RADIATING": "Udstrålende",
+    "DULL": "Dump",
+    "ACHING": "Murrende",
+    "TINGLING": "Prikkende"
+  },
+  "history": {
+    "title": "Historik",
+    "empty": "Ingen check-ins endnu.",
+    "loading": "Indlæser historik…",
+    "loadFailed": "Kunne ikke indlæse historik"
+  },
   "bodyRegion": {
     "head": "Hoved",
     "neck": "Nakke",

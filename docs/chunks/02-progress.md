@@ -5,7 +5,7 @@ Live progress log for `docs/chunks/02-body-map-check-in.md`. **Updated after eve
 - **Branch**: `claude/chunk-02-body-map`
 - **Static plan**: inline (see "Locked decisions resolved in plan mode" + "Phase progress" below — no separate plan file)
 - **Last update**: 2026-05-16
-- **Current phase**: 6 (`Mobile check-in flow`)
+- **Current phase**: 7 (`Mobile history screens`)
 - **Token-budget hint**: medium
 
 ---
@@ -78,7 +78,7 @@ Resume at the "Next concrete step" section.
 - Bootstrap creates 2 clinics + 2 clients via the real invite flow (`/auth/sign-up/email` → `/api/clinics/signup` → `/api/invites/create` → `/api/invites/accept` → `/auth/sign-in/email` → `/auth/token`) — exercises the chunk 01 path end-to-end.
 - `pnpm --filter @vitapeak/api test`: 19/19 green (auth e2e + check-in e2e + 1 unit). `pnpm typecheck`: 12/12 green.
 
-### ✅ Phase 5 — Mobile BodyMap component (commit `__pending__`)
+### ✅ Phase 5 — Mobile BodyMap component (commit `9c2ee43`)
 
 - `apps/mobile/src/components/BodyMap/`:
   - `regions.ts` — shape data per view (front 31, back 35 — shoulders/arms/hands/feet appear on both). Discriminated union `RegionShape = ellipse | rect | path`. `BODY_VIEWBOX = '0 0 200 470'`. `regionI18nKey(id)` flattens dotted slugs (`shoulder.left` → `bodyRegion.shoulder_left`) to dodge i18next's `.` keySeparator.
@@ -90,7 +90,22 @@ Resume at the "Next concrete step" section.
 - `apps/mobile/app/(poc)/body-map-dev.tsx` — visual smoke harness wiring `BodyMap` to local `Set<string>` state, listing selected ids + labels. Route: `/(poc)/body-map-dev`.
 - Verified: `pnpm typecheck` (12/12 green). Live web smoke deferred to user via `dev.rontved.com` → `/(poc)/body-map-dev`. Pre-existing lint nit in `body-tap-poc.tsx` (`G` unused) is unrelated and out of scope here.
 
-### 🟡 Phase 6 — Mobile check-in flow (NEXT)
+### ✅ Phase 6 — Mobile check-in flow (commit `__pending__`)
+
+- `apps/mobile/src/query/client.ts` + `app/_layout.tsx` — `QueryClientProvider` wraps `AuthGate` (split from `RootLayout`). Defaults: retry=1, no window-focus refetch, 30s staleTime.
+- `apps/mobile/src/api/check-ins.ts` — `useCheckIns()` (`GET /api/check-ins`) + `useSubmitCheckIn()` (POST). Optimistic insert into `['check-ins']` cache + rollback on error via `onMutate`/`onError`/`onSuccess` (swaps optimistic row for server row by `optimisticId`). `onSettled` invalidates so a subsequent fetch reconciles.
+- `apps/mobile/src/state/check-in-draft.ts` — module-scoped `useSyncExternalStore` draft shared across the three flow screens. Exposes `toggleRegion`, `updatePainPoint`, `setMood`, `setNotes`, `buildPainPointsPayload`, `resetDraft`. Default `painType=ACHING`, `level=5` for a freshly-tapped region.
+- `apps/mobile/app/(client)/check-in/{index,details,review}.tsx` — three steps:
+  - **Step 1 / `index.tsx`**: `BodyMap` driven by `useCheckInDraft().selectedRegions`; "Continue" disabled until ≥1. `useEffect(resetDraft, [])` on mount clears the draft.
+  - **Step 2 / `details.tsx`**: per-region card → 6 painType chips, `@react-native-community/slider` (0–10, step=1), optional notes (max 2000). Updates via `updatePainPoint`.
+  - **Step 3 / `review.tsx`**: lists each pain point summary, mood 1–5 chip row (toggleable, optional), check-in-level notes. Submit → `useSubmitCheckIn.mutateAsync(...)` → `Alert.alert(t('checkIn.saved'))` → `router.replace('/(client)/history')`.
+- `apps/mobile/app/(client)/history/index.tsx` — Phase-7 stub (empty state copy) so `review.tsx`'s post-submit redirect doesn't crash.
+- `apps/mobile/app/(client)/index.tsx` — added "New check-in" + "View history" CTAs that navigate into the flow.
+- i18n: `checkIn.*` (home/step/selectRegions/details/review + `selectedCount_one|_other`), `painType.<ENUM>`, `history.*` keys added to `da.json` + `en.json`.
+- Deps: `@tanstack/react-query@^5.100`, `@react-native-community/slider@4.5.5`, `@vitapeak/contracts@workspace:*` added to `apps/mobile`.
+- Verified: `pnpm typecheck` (12/12 green). Live web smoke deferred to user.
+
+### 🟡 Phase 7 — Mobile history screens (NEXT)
 
 `apps/mobile/src/components/BodyMap/{BodyMap,svg-front,svg-back,regions}.tsx`. Front/back tabs, tap → select region(s), highlight state. Reuse PoC tap logic. i18n labels via `bodyRegion.<slug>`.
 
@@ -114,16 +129,18 @@ Run all chunk acceptance criteria. Update `docs/chunks/02-body-map-check-in.md` 
 
 ## Next concrete step
 
-**Start Phase 6 — Mobile check-in flow.**
+**Start Phase 7 — Mobile history screens.**
 
-1. Create `apps/mobile/src/api/check-ins.ts` — React Query hooks against the ts-rest client: `useSubmitCheckIn()` (mutation with optimistic insert into `useCheckIns` cache + rollback on error) and `useCheckIns()` (`GET /api/check-ins`). Reuse the ofetch-backed transport in `src/api/` from chunk 01.
-2. Create the 3-step flow under `apps/mobile/app/(client)/check-in/`:
-   - `index.tsx` — wraps `BodyMap` with controlled `Set<string>` state; "Continue" disabled until ≥1 region selected. Pass selected ids forward via route params (or a small Zustand store — pick the simpler one).
-   - `details.tsx` — for each selected region, render: `painType` segmented (BURNING/SHARP/RADIATING/DULL/ACHING/TINGLING), level slider (0–10) via `@react-native-community/slider` (add to deps), optional per-region notes (`<TextInput>` max 2000).
-   - `review.tsx` — summarize regions + their painType+level, mood 1–5 picker (optional), check-in-level notes (optional). Submit fires `useSubmitCheckIn`. On 201 → `router.replace('(client)/history')` with success toast.
-3. Add i18n keys to `da.json`/`en.json`: `checkIn.{title,continue,submit,saved}`, `painType.{BURNING,SHARP,RADIATING,DULL,ACHING,TINGLING}`, `history.{title,empty}` (history copy needed for Phase 7 too — bundle now).
-4. Update `(client)/index.tsx` to link to `(client)/check-in` ("New check-in" CTA).
-5. Commit: `feat(mobile): client check-in flow (select → details → review)` — include progress-file update flipping Phase 6 → ✅ and Phase 7 → 🟡.
+1. Replace stub `apps/mobile/app/(client)/history/index.tsx` with a real screen:
+   - Call `useCheckIns()` from `src/api/check-ins.ts`.
+   - Render `FlatList` of cards, one per check-in. Each card: formatted `occurredAt` (use `Intl.DateTimeFormat` with the active locale from `i18n.language`), region-summary chip row (translate each `bodyRegionId` via `regionI18nKey(id)`), optional mood pill.
+   - Tap a card → `router.push(\`/(client)/history/[id]\`, { id })`.
+   - States: loading (`isLoading`) → `history.loading` spinner; empty (`data?.checkIns.length === 0`) → `history.empty`; error (`isError`) → `history.loadFailed` with a retry button calling `refetch()`.
+2. Create `apps/mobile/app/(client)/history/[id].tsx`:
+   - `useLocalSearchParams<{ id: string }>()` → find the check-in in the cached list (fall back to the optional `byId` selector if missing — for now grab from `useCheckIns()` data).
+   - Render full detail: each `painPoint` with `regionI18nKey` label + painType badge + level + per-point notes; show check-in-level mood + notes.
+3. No new i18n keys needed (history.\* already added in Phase 6).
+4. Commit: `feat(mobile): client history list + detail` — flip Phase 7 → ✅, Phase 8 → 🟡.
 
 ---
 

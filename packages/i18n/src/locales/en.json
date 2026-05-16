@@ -68,6 +68,55 @@
     "front": "Front",
     "back": "Back"
   },
+  "checkIn": {
+    "step": "Step {{current}} of {{total}}",
+    "saved": "Check-in saved",
+    "selectedCount_one": "{{count}} region selected",
+    "selectedCount_other": "{{count}} regions selected",
+    "home": {
+      "title": "Hi",
+      "subtitle": "Log how you feel today.",
+      "newCheckIn": "New check-in",
+      "viewHistory": "View history"
+    },
+    "selectRegions": {
+      "title": "Where does it hurt?",
+      "subtitle": "Tap one or more regions on the body."
+    },
+    "details": {
+      "title": "Describe the pain",
+      "subtitle": "For each region, pick a type and rate the intensity.",
+      "painType": "Type",
+      "level": "Level",
+      "notes": "Notes (optional)",
+      "notesPlaceholder": "Anything you want to add",
+      "empty": "No regions selected.",
+      "backToSelect": "Pick regions"
+    },
+    "review": {
+      "title": "Review and submit",
+      "painPoints": "Pain points",
+      "mood": "Mood (optional)",
+      "notes": "Overall notes (optional)",
+      "notesPlaceholder": "Add anything relevant",
+      "submit": "Submit check-in",
+      "submitFailed": "Could not submit"
+    }
+  },
+  "painType": {
+    "BURNING": "Burning",
+    "SHARP": "Sharp",
+    "RADIATING": "Radiating",
+    "DULL": "Dull",
+    "ACHING": "Aching",
+    "TINGLING": "Tingling"
+  },
+  "history": {
+    "title": "History",
+    "empty": "No check-ins yet.",
+    "loading": "Loading history…",
+    "loadFailed": "Could not load history"
+  },
   "bodyRegion": {
     "head": "Head",
     "neck": "Neck",
