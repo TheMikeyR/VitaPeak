@@ -5,8 +5,8 @@ Live progress log for `docs/chunks/02-body-map-check-in.md`. **Updated after eve
 - **Branch**: `claude/chunk-02-body-map`
 - **Static plan**: inline (see "Locked decisions resolved in plan mode" + "Phase progress" below — no separate plan file)
 - **Last update**: 2026-05-16
-- **Current phase**: 2 (`ts-rest contracts`)
-- **Token-budget hint**: small
+- **Current phase**: 3 (`API check-ins + body-regions modules`)
+- **Token-budget hint**: medium
 
 ---
 
@@ -47,7 +47,7 @@ Resume at the "Next concrete step" section.
 
 ## Phase progress
 
-### ✅ Phase 1 — Prisma schema + seed + tenancy extension (commit `<PHASE1_SHA>`)
+### ✅ Phase 1 — Prisma schema + seed + tenancy extension (commit `eb5a561`)
 
 - `packages/db/prisma/schema.prisma` gained enums `Side` + `PainType` and models `BodyRegion`, `CheckIn`, `PainPoint`. `Client` gained `checkIns CheckIn[]` back-relation. `CheckIn` has `@@index([clientId, occurredAt(sort: Desc)])` + `@@index([clinicId, occurredAt(sort: Desc)])`; `PainPoint` cascades on `CheckIn` delete.
 - Migration `20260516075650_body_map_and_check_ins` applied (PG advisory lock 72707369 was stuck from a killed prior session — terminated with `pg_terminate_backend` then migration succeeded).
@@ -56,11 +56,14 @@ Resume at the "Next concrete step" section.
 - `apps/api/src/db/tenancy.extension.ts` `TENANT_BOUND_MODELS` now includes `CheckIn`. `PainPoint` reaches tenancy transitively via `CheckIn` joins; `BodyRegion` is system-shared and bypasses.
 - Verified: `pnpm db:seed` reports 44 regions + client created. `pnpm typecheck` passes across all 12 workspace tasks.
 
-### 🟡 Phase 2 — ts-rest contracts (NEXT)
+### ✅ Phase 2 — ts-rest contracts (commit `<PHASE2_SHA>`)
 
-`packages/contracts/src/{check-ins,body-regions}.ts`. zod schemas: `CreateCheckIn`, `CheckInItem`, `PainPointItem`, `BodyRegionItem`. Routes: `POST /check-ins`, `GET /check-ins`, `GET /body-regions`. Export from `index.ts`.
+- `packages/contracts/src/body-regions.ts` — `SideSchema`, `BodyRegionItemSchema`, `bodyRegionsListRoute` (`GET /api/body-regions`). `bodyRegionsContract.list`.
+- `packages/contracts/src/check-ins.ts` — `PainTypeSchema`, `PainPointInputSchema`, `CreateCheckInBodySchema` (mood 1–5, notes ≤2000, ≥1 painPoints; level 0–10), `CheckInItemSchema`, `ListCheckInsQuerySchema` (from/to/limit coerce-int 1–200). Routes: `POST /api/check-ins` (201/400/401/403), `GET /api/check-ins` (200/401/403).
+- `packages/contracts/src/index.ts` registers `bodyRegions` + `checkIns` sub-routers and re-exports everything.
+- Verified: `pnpm --filter @vitapeak/contracts build` + `pnpm typecheck` (12/12 green).
 
-### ⬜ Phase 3 — API check-ins + body-regions modules
+### 🟡 Phase 3 — API check-ins + body-regions modules (NEXT)
 
 `apps/api/src/modules/{check-ins,body-regions}/`. `@TsRestHandler(route)` + `tsRestHandler(route, async ({ body }) => ...)`. `AuthGuard` + `TenantGuard`. `@Audit('checkin.submit' | 'checkin.list')`. Wire into `AppModule`.
 
@@ -92,23 +95,23 @@ Run all chunk acceptance criteria. Update `docs/chunks/02-body-map-check-in.md` 
 
 ## Next concrete step
 
-**Start Phase 2 — ts-rest contracts.**
+**Start Phase 3 — API check-ins + body-regions modules.**
 
-1. Create `packages/contracts/src/body-regions.ts`:
-   - `BodyRegionItemSchema = z.object({ id, parentId, side: z.enum(['LEFT','RIGHT','CENTER']).nullable(), displayLayer, label })`.
-   - `bodyRegionsListRoute = c.query({ method: 'GET', path: '/api/body-regions', responses: { 200: z.object({ regions: z.array(BodyRegionItemSchema) }), 401: ... } })`.
-   - Export `bodyRegionsContract = c.router({ list: bodyRegionsListRoute })`.
-2. Create `packages/contracts/src/check-ins.ts`:
-   - `PainTypeSchema = z.enum(['BURNING','SHARP','RADIATING','DULL','ACHING','TINGLING'])`.
-   - `PainPointInputSchema = z.object({ bodyRegionId, painType: PainTypeSchema, level: z.number().int().min(0).max(10), x: z.number().optional(), y: z.number().optional(), notes: z.string().max(2000).optional() })`.
-   - `CreateCheckInBodySchema = z.object({ occurredAt: z.string().datetime().optional(), mood: z.number().int().min(1).max(5).optional(), notes: z.string().max(2000).optional(), painPoints: z.array(PainPointInputSchema).min(1) })`.
-   - `CheckInItemSchema` (response shape with id + occurredAt + painPoints[]).
-   - `checkInsCreateRoute = c.mutation({ method: 'POST', path: '/api/check-ins', body: ..., responses: { 201, 400, 401, 403 } })`.
-   - `checkInsListRoute = c.query({ method: 'GET', path: '/api/check-ins', query: z.object({ from: z.string().datetime().optional(), to: z.string().datetime().optional(), limit: z.coerce.number().int().min(1).max(200).optional() }), responses: { 200: z.object({ checkIns: z.array(CheckInItemSchema) }) } })`.
-3. Update `packages/contracts/src/index.ts` to register `bodyRegions` + `checkIns` sub-routers + re-export everything.
-4. `pnpm --filter @vitapeak/contracts build && pnpm typecheck` (must stay green — adding the contracts before consumers shouldn't break anything).
-5. Commit: `feat(contracts): check-ins + body-regions ts-rest contracts` — include this progress file update.
-6. Update this file: Phase 2 → ✅ + SHA, Phase 3 → 🟡 with first 1–3 sub-steps.
+1. Create `apps/api/src/modules/body-regions/`:
+   - `body-regions.module.ts` (Module with controller).
+   - `body-regions.controller.ts` — `@TsRestHandler(bodyRegionsListRoute)` `list()` method. Use `runWithSystemContext` so BodyRegion (system-shared) bypasses tenancy. Or just call directly — BodyRegion is in the bypass set (not in `TENANT_BOUND_MODELS`). `AuthGuard` only (no `TenantGuard` — list is global; any authenticated user can read).
+2. Create `apps/api/src/modules/check-ins/`:
+   - `check-ins.service.ts` — `createForClient(client, body)` and `listForClient(client, query)`. `createForClient`: validate every `bodyRegionId` exists (`prisma.bodyRegion.findMany({ where: { id: { in: ids } } })`; if mismatch → throw 400). Then `prisma.checkIn.create({ data: { clientId: client.id, occurredAt: body.occurredAt ?? new Date(), mood, notes, painPoints: { create: body.painPoints.map(...) } }, include: { painPoints: true } })`. Tenancy extension auto-injects `clinicId`. `listForClient`: `prisma.checkIn.findMany({ where: { clientId: client.id, occurredAt: { gte: from, lte: to } }, orderBy: { occurredAt: 'desc' }, take: limit ?? 50, include: { painPoints: true } })`.
+   - `check-ins.controller.ts` — `@TsRestHandler(createCheckInRoute)` and `@TsRestHandler(listCheckInsRoute)`. `AuthGuard` + `TenantGuard` + `@Audit('checkin.submit')` / `@Audit('checkin.list')`. Resolve the Client row from `req.tenant` (role must be `client`; if therapist hits this → 403).
+   - `check-ins.module.ts`.
+3. Wire `BodyRegionsModule` + `CheckInsModule` into `AppModule`.
+4. Smoke test:
+   - `pnpm db:seed` (idempotent).
+   - `pnpm --filter @vitapeak/api dev` then `curl /api/body-regions` with a JWT for the seeded client → should return 44 regions.
+   - `curl -X POST /api/check-ins` with valid body → 201. Invalid bodyRegionId → 400. Therapist JWT → 403.
+5. `pnpm typecheck` must stay green.
+6. Commit: `feat(api): check-ins + body-regions endpoints` — include this progress file update.
+7. Update this file: Phase 3 → ✅ + SHA, Phase 4 → 🟡 with first 1–3 sub-steps.
 
 ---
 
