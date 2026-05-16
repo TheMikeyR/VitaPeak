@@ -17,6 +17,9 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "^4.0.1",
+    "@react-native-community/slider": "4.5.5",
+    "@tanstack/react-query": "^5.100.10",
+    "@vitapeak/contracts": "workspace:*",
     "@vitapeak/i18n": "workspace:*",
     "expo": "~52.0.23",
     "expo-constants": "~17.0.4",

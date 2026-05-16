@@ -63,5 +63,112 @@
     "serverError": "Something went wrong. Please try again.",
     "unauthorized": "You are not authorized",
     "forbidden": "Access denied"
+  },
+  "bodyMap": {
+    "front": "Front",
+    "back": "Back"
+  },
+  "checkIn": {
+    "step": "Step {{current}} of {{total}}",
+    "saved": "Check-in saved",
+    "selectedCount_one": "{{count}} region selected",
+    "selectedCount_other": "{{count}} regions selected",
+    "home": {
+      "title": "Hi",
+      "subtitle": "Log how you feel today.",
+      "newCheckIn": "New check-in",
+      "viewHistory": "View history"
+    },
+    "selectRegions": {
+      "title": "Where does it hurt?",
+      "subtitle": "Tap one or more regions on the body."
+    },
+    "details": {
+      "title": "Describe the pain",
+      "subtitle": "For each region, pick a type and rate the intensity.",
+      "painType": "Type",
+      "level": "Level",
+      "notes": "Notes (optional)",
+      "notesPlaceholder": "Anything you want to add",
+      "empty": "No regions selected.",
+      "backToSelect": "Pick regions"
+    },
+    "review": {
+      "title": "Review and submit",
+      "painPoints": "Pain points",
+      "mood": "Mood (optional)",
+      "notes": "Overall notes (optional)",
+      "notesPlaceholder": "Add anything relevant",
+      "submit": "Submit check-in",
+      "submitFailed": "Could not submit"
+    }
+  },
+  "painType": {
+    "BURNING": "Burning",
+    "SHARP": "Sharp",
+    "RADIATING": "Radiating",
+    "DULL": "Dull",
+    "ACHING": "Aching",
+    "TINGLING": "Tingling"
+  },
+  "history": {
+    "title": "History",
+    "empty": "No check-ins yet.",
+    "loading": "Loading history…",
+    "loadFailed": "Could not load history",
+    "retry": "Try again",
+    "notFound": "Check-in not found",
+    "back": "Back to history",
+    "painPoints": "Pain points",
+    "mood": "Mood",
+    "notes": "Notes",
+    "painNotes": "Notes",
+    "noPoints": "No pain points recorded."
+  },
+  "bodyRegion": {
+    "head": "Head",
+    "neck": "Neck",
+    "shoulder_left": "Left shoulder",
+    "shoulder_right": "Right shoulder",
+    "chest": "Chest",
+    "chest_left": "Left chest",
+    "chest_right": "Right chest",
+    "abdomen": "Abdomen",
+    "upper-arm_left": "Left upper arm",
+    "upper-arm_right": "Right upper arm",
+    "elbow_left": "Left elbow",
+    "elbow_right": "Right elbow",
+    "forearm_left": "Left forearm",
+    "forearm_right": "Right forearm",
+    "wrist_left": "Left wrist",
+    "wrist_right": "Right wrist",
+    "hand_left": "Left hand",
+    "hand_right": "Right hand",
+    "hip_left": "Left hip",
+    "hip_right": "Right hip",
+    "groin": "Groin",
+    "thigh_left": "Left thigh",
+    "thigh_right": "Right thigh",
+    "knee_left": "Left knee",
+    "knee_right": "Right knee",
+    "shin_left": "Left shin",
+    "shin_right": "Right shin",
+    "ankle_left": "Left ankle",
+    "ankle_right": "Right ankle",
+    "foot_left": "Left foot",
+    "foot_right": "Right foot",
+    "upper-back": "Upper back",
+    "scapula_left": "Left shoulder blade",
+    "scapula_right": "Right shoulder blade",
+    "mid-back": "Mid back",
+    "lower-back": "Lower back",
+    "glute_left": "Left glute",
+    "glute_right": "Right glute",
+    "hamstring_left": "Left hamstring",
+    "hamstring_right": "Right hamstring",
+    "calf_left": "Left calf",
+    "calf_right": "Right calf",
+    "heel_left": "Left heel",
+    "heel_right": "Right heel"
   }
 }

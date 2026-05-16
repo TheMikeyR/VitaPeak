@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import { QueryClientProvider } from '@tanstack/react-query';
 import '../src/i18n';
 import { useAuth } from '../src/auth/use-auth';
+import { queryClient } from '../src/query/client';
 
-export default function RootLayout() {
+function AuthGate() {
   const router = useRouter();
   const segments = useSegments();
   const { loading, sessionToken, role } = useAuth();
@@ -31,4 +33,12 @@ export default function RootLayout() {
   }, [loading, sessionToken, role, segments, router]);
 
   return <Stack screenOptions={{ headerShown: false }} />;
+}
+
+export default function RootLayout() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthGate />
+    </QueryClientProvider>
+  );
 }

@@ -1,0 +1,53 @@
+appId: app.vitapeak.mobile
+name: Client check-in end-to-end
+tags:
+  - check-in
+  - smoke
+---
+# Prereq:
+#   * API running (`pnpm --filter @vitapeak/api dev`)
+#   * `pnpm --filter @vitapeak/db db:seed` has populated the demo client +
+#     44 body regions.
+#   * Mobile app launched with `EXPO_PUBLIC_DEV_QUICK_LOGIN=true`
+#     and (optionally) `EXPO_PUBLIC_API_URL` pointing at the API.
+#   * Device locale is Danish (`da`) — the saved-alert assertion uses the
+#     Danish string from `packages/i18n/src/locales/da.json`. Adjust to
+#     "Check-in saved" if you run with `en`.
+
+- launchApp:
+    clearState: true
+
+# Step 0 — login as the seeded client via the dev quick-login button.
+- assertVisible:
+    id: 'dev-quick-login'
+- tapOn:
+    id: 'dev-quick-login'
+
+# Step 1 — from client home, start a new check-in.
+- assertVisible:
+    id: 'home-new-checkin'
+- tapOn:
+    id: 'home-new-checkin'
+
+# Step 2 — body map: swap to the back view, tap the lower-back region.
+- assertVisible:
+    id: 'body-tab-back'
+- tapOn:
+    id: 'body-tab-back'
+- tapOn:
+    id: 'region-lower-back'
+- tapOn:
+    id: 'checkin-step1-continue'
+
+# Step 3 — pick "Sharp" pain type for the lower-back region.
+# Slider stays at the default (5) — Maestro slider drags are flaky on
+# react-native-community/slider and the API accepts any 0–10 value.
+- tapOn:
+    id: 'pain-type-SHARP-lower-back'
+- tapOn:
+    id: 'checkin-step2-continue'
+
+# Step 4 — submit and assert the native saved-alert appears.
+- tapOn:
+    id: 'checkin-submit'
+- assertVisible: 'Check-in gemt'

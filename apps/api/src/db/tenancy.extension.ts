@@ -1,7 +1,10 @@
 import { Prisma } from '@vitapeak/db';
 import { tenantContext, MissingTenantContextError, type TenantContext } from './tenant-context.js';
 
-const TENANT_BOUND_MODELS = new Set(['Therapist', 'Client', 'Invite']);
+// CheckIn is tenant-bound directly (carries clinicId). PainPoint is reached only
+// through CheckIn joins by controllers — no PainPoint where-injection needed.
+// BodyRegion is system-shared (no clinicId) and bypasses tenancy entirely.
+const TENANT_BOUND_MODELS = new Set(['Therapist', 'Client', 'Invite', 'CheckIn']);
 
 const WHERE_INJECTABLE_OPS = new Set([
   'findMany',
