@@ -5,7 +5,7 @@ Live progress log for `docs/chunks/02-body-map-check-in.md`. **Updated after eve
 - **Branch**: `claude/chunk-02-body-map`
 - **Static plan**: inline (see "Locked decisions resolved in plan mode" + "Phase progress" below — no separate plan file)
 - **Last update**: 2026-05-16
-- **Current phase**: 4 (`API e2e tests`)
+- **Current phase**: 5 (`Mobile BodyMap component`)
 - **Token-budget hint**: medium
 
 ---
@@ -64,18 +64,21 @@ Resume at the "Next concrete step" section.
 - `packages/contracts/src/index.ts` registers `bodyRegions` + `checkIns` sub-routers and re-exports everything.
 - Verified: `pnpm --filter @vitapeak/contracts build` + `pnpm typecheck` (12/12 green).
 
-### ✅ Phase 3 — API check-ins + body-regions modules (commit `<PHASE3_SHA>`)
+### ✅ Phase 3 — API check-ins + body-regions modules (commit `6fd7e88`)
 
 - `apps/api/src/modules/body-regions/` — `BodyRegionsController` with `@TsRestHandler(bodyRegionsListRoute)`. `AuthGuard` only (BodyRegion is system-shared; not in `TENANT_BOUND_MODELS` so tenancy extension bypasses). Returns 44 regions ordered by `[displayLayer, id]`.
 - `apps/api/src/modules/check-ins/` — `CheckInsService` (`createForClient`, `listForClient`) + `CheckInsController` (`AuthGuard` + `TenantGuard` + `@Audit('checkin.submit' | 'checkin.list')`). Role-check rejects therapist callers with 403. `createForClient` pre-validates every `bodyRegionId` exists → 400 with the missing ids listed. CheckIn create receives `clinicId` + `clientId` explicitly; nested `painPoints.create` for each pain point.
 - `AppModule` imports `BodyRegionsModule` + `CheckInsModule`.
 - Verified: `pnpm typecheck` (12/12 green). Live smoke deferred to Phase 4's supertest-based e2e.
 
-### 🟡 Phase 4 — API e2e tests (NEXT)
+### ✅ Phase 4 — API e2e tests (commit `__pending__`)
 
-`apps/api/test/e2e/check-in.e2e-spec.ts`: happy path (POST + GET), validation 400s (level=11, unknown regionId, empty painPoints), cross-tenant 403 (client A cannot see client B's check-ins), `GET /body-regions` returns 44 rows.
+- `apps/api/test/e2e/check-in.e2e-spec.ts` — 10 cases: `GET /body-regions` 401 without JWT + 200 with 44 rows (client + therapist JWT both, since BodyRegion is system-shared), happy-path POST (2 pain points persisted) + GET (desc by `occurredAt`), validation (`level=11`, unknown `bodyRegionId` with id in error message, empty `painPoints[]`), cross-tenant isolation (client B sees empty list), role gating (therapist POST/GET → 403).
+- Test seeds the 44 `BodyRegion` rows in-test (`runWithSystemContext` + upsert in root-then-child order, reading `packages/db/data/body-regions.json` via `fs`) so the suite is independent of `pnpm db:seed`.
+- Bootstrap creates 2 clinics + 2 clients via the real invite flow (`/auth/sign-up/email` → `/api/clinics/signup` → `/api/invites/create` → `/api/invites/accept` → `/auth/sign-in/email` → `/auth/token`) — exercises the chunk 01 path end-to-end.
+- `pnpm --filter @vitapeak/api test`: 19/19 green (auth e2e + check-in e2e + 1 unit). `pnpm typecheck`: 12/12 green.
 
-### ⬜ Phase 5 — Mobile BodyMap component
+### 🟡 Phase 5 — Mobile BodyMap component (NEXT)
 
 `apps/mobile/src/components/BodyMap/{BodyMap,svg-front,svg-back,regions}.tsx`. Front/back tabs, tap → select region(s), highlight state. Reuse PoC tap logic. i18n labels via `bodyRegion.<slug>`.
 
@@ -99,18 +102,15 @@ Run all chunk acceptance criteria. Update `docs/chunks/02-body-map-check-in.md` 
 
 ## Next concrete step
 
-**Start Phase 4 — API e2e tests.**
+**Start Phase 5 — Mobile BodyMap component.**
 
-1. Create `apps/api/test/e2e/check-in.e2e-spec.ts` (model after the existing `auth.e2e-spec.ts`):
-   - `beforeAll`: build `AppModule` testing module, mount Better-Auth handler the way `main.ts` does, run `pnpm db:seed` (or recreate equivalent rows in-test).
-   - **Body regions**: GET `/api/body-regions` with the seeded client's JWT → 200, `regions.length === 44`. Without JWT → 401.
-   - **Happy path**: sign up a fresh client via invite, exchange JWT, POST `/api/check-ins` with 2 pain points → 201, returned body has `painPoints.length === 2`. GET `/api/check-ins` → 200, `checkIns.length === 1`, sorted desc by `occurredAt`.
-   - **Validation**: POST with `level: 11` → 400. POST with `bodyRegionId: 'nonexistent'` → 400 with message naming the unknown ids. POST with `painPoints: []` → 400.
-   - **Cross-tenant**: in clinic B, sign up another therapist + client. Client B GET `/api/check-ins` → 200, empty array (does not see client A's data). Client B's CheckIn ID against client A's filter set → also empty.
-   - **Role gating**: therapist JWT POST `/api/check-ins` → 403. Therapist JWT GET `/api/check-ins` → 403.
-2. Run `pnpm --filter @vitapeak/api test:e2e` (uses vitest, sequential `pool: 'forks'`, `maxWorkers: 1`).
-3. Commit: `test(api): e2e for check-ins + body-regions` — include this progress file update.
-4. Update this file: Phase 4 → ✅ + SHA, Phase 5 → 🟡 with first 1–3 sub-steps.
+1. Create `apps/mobile/src/components/BodyMap/`:
+   - `regions.ts` — re-export `apps/mobile/assets/body/regions.json` typed against the contract `BodyRegionItem` shape; group by `displayLayer` (`2d-front` vs `2d-back`).
+   - `svg-front.tsx` + `svg-back.tsx` — `<Svg>` (`react-native-svg`) with one `<Path id={slug}>` per region. Reuse the SVG paths from the PoC at `apps/mobile/app/(poc)/body-tap-poc.tsx`.
+   - `BodyMap.tsx` — props: `selected: string[]`, `onToggleRegion: (id: string) => void`. Front/back tab switcher (segmented control). Tap → call `onToggleRegion`. Selected path: accent fill; idle: light fill. `useTranslation()` resolves `bodyRegion.<slug>` for accessibility label.
+2. Add i18n keys: `apps/mobile/src/i18n/{da,en}.json` — `bodyRegion.<slug>` for all 44 ids + `bodyMap.front`, `bodyMap.back`.
+3. Storybook is not in scope; smoke-render the component on a dev screen (`/(poc)/body-map-dev.tsx` is fine — gated by `EXPO_PUBLIC_DEV_*`) and tap-verify in Expo web before moving on.
+4. Commit: `feat(mobile): BodyMap component (front/back tabs, tap select)` — include progress-file update flipping Phase 5 → ✅ and Phase 6 → 🟡.
 
 ---
 
