@@ -1,20 +1,24 @@
 # Chunk 01 — Better-Auth + multi-tenant invite flow + Prisma tenancy enforcement
 
-Status: ⬜ not started
+Status: ✅ done — 2026-05-16 — see PR (Better-Auth + multi-tenant invites + Prisma tenancy)
 Plan mode: **REQUIRED** — Better-Auth replaces Keycloak (ADR 0002), Prisma tenancy middleware is new locked design, and invite-link UX changes when `MAIL_PROVIDER=console` (ADR 0004). Surface these decisions before code.
 
 ## Goal
+
 Wire Better-Auth (in-process inside NestJS) across the API, Next.js web (Auth.js v5 client adapter), and Expo mobile (OIDC-shaped flow). Implement the clinic/therapist/client model with an invite flow that works both with outbound mail and with the `console` fallback. Enforce tenant isolation in two layers: a NestJS `TenantGuard` **and** a Prisma client extension that injects `clinicId` into every domain query.
 
 ## Prerequisites
+
 - Chunk 00 merged.
 
 ## Context for fresh session
+
 Repo scaffold is in place. Postgres + MinIO + Mailhog + Redis run in Docker. **There is no Keycloak container — ADR 0002 replaced it with Better-Auth in-process.** No auth wired yet. After this chunk, a therapist can sign up, create a clinic, invite a client (link comes back inline because `MAIL_PROVIDER=console` for now), and the client can register through the magic link.
 
 Read ADR 0002 + ADR 0004 first. Both shape this chunk's design.
 
 ## Locked decisions
+
 - **Auth**: Better-Auth running in-process inside the NestJS API. Keycloak is rejected for MVP per ADR 0002. JWT shape stays Keycloak-compatible (`sub`, `email`, `email_verified`, `preferred_username`, `realm_access.roles: ["therapist" | "client"]`) so guards never change when Keycloak is adopted later.
 - **External user identifier column**: `externalAuthId` (not `keycloakId`). Generic to whichever issuer is active.
 - **Multi-tenant from day one**. Every domain row carries `clinicId`.
@@ -29,6 +33,7 @@ Read ADR 0002 + ADR 0004 first. Both shape this chunk's design.
 - **Audit hooks**: stub interceptor logs `{ kind: "audit", action, actor, entity, entityId }` to stdout. Real `AuditLog` table comes in chunk 07.
 
 ## Open decisions (surface in plan mode)
+
 - **Better-Auth deployment shape**: standalone Better-Auth handler mounted under `/auth/*` in NestJS, or fully library-style with no HTTP routes (custom NestJS controllers calling Better-Auth's TS API)? Plan-mode recommendation: mount the handler under `/auth/*` so password resets, email verification, and magic links work out of the box.
 - **Web client library**: Better-Auth's React client vs Auth.js v5 with a custom Better-Auth provider. Recommend: Better-Auth's React client to avoid two auth libraries in the web app.
 - **Mobile auth flow**: Better-Auth supports bearer-token mode well, so `expo-auth-session` is not strictly required — a custom login screen calling `/auth/sign-in/email` returns tokens directly. Confirm: skip OIDC redirect flow for MVP.
@@ -36,6 +41,7 @@ Read ADR 0002 + ADR 0004 first. Both shape this chunk's design.
 - **Prisma extension scope**: which models are "tenant-bound" exactly? Recommend: every model with a `clinicId` field (Therapist, Client, Invite, CheckIn, PainPoint, PlanItem, ClientProgram, ProgramTemplate when clinicId is non-null, Exercise when clinicId is non-null, AuditLog, HealthMetric, HealthSyncState). Exclude: BodyRegion, system-seeded ProgramTemplate/Exercise rows where `clinicId IS NULL`.
 
 ## Scope (in)
+
 - **Better-Auth setup** (`apps/api/src/auth/better-auth.module.ts`): configure with Prisma adapter, enable email/password, magic link, optional passkey for later. Issue JWTs with Keycloak-compatible claim shape.
 - **Generic `AuthGuard`** (`apps/api/src/auth/auth.guard.ts`): validates JWT, attaches `{ userId, externalAuthId, role }` to request. Issuer-agnostic.
 - **`TenantGuard`** (`apps/api/src/auth/tenant.guard.ts`): looks up the user in DB by `externalAuthId`, attaches `{ clinicId, dbUserId }` to request. 403 on missing record.
@@ -51,6 +57,7 @@ Read ADR 0002 + ADR 0004 first. Both shape this chunk's design.
 - **Stub audit interceptor**: `apps/api/src/audit/audit.interceptor.ts` logs to stdout, no DB writes yet.
 
 ## Scope (out)
+
 - Body map / check-ins (chunk 02)
 - Plans (chunk 04)
 - Program templates (chunk 05)
@@ -62,6 +69,7 @@ Read ADR 0002 + ADR 0004 first. Both shape this chunk's design.
 - Postgres RLS (deferred; see PLAN.md "Deferred services")
 
 ## Files to create / modify
+
 - `infra/docker-compose.yml` — remove any Keycloak service from chunk 00 (or never add it). Confirm no Keycloak references remain.
 - `packages/db/prisma/schema.prisma` — `Invite` model; `externalAuthId` on Therapist + Client; relevant indexes.
 - `packages/db/prisma/seed.ts` — seed one clinic, one therapist (with matching Better-Auth user via the admin API at seed time).
@@ -89,6 +97,7 @@ Read ADR 0002 + ADR 0004 first. Both shape this chunk's design.
 - `apps/mobile/app/_layout.tsx` — role-aware redirect
 
 ## Implementation notes
+
 - **Better-Auth Prisma adapter**: install `better-auth/prisma`. Auth tables (`User`, `Account`, `Session`, `Verification`) coexist with domain tables in the same Postgres DB. `externalAuthId` in `Therapist`/`Client` references `User.id`.
 - **JWT issuer claim**: set `iss = "vitapeak-better-auth"`. Migration to Keycloak rewrites `iss` to the Keycloak realm URL; guard does not care about `iss`, only signature + claim shape.
 - **JWT signing**: HMAC (`HS256`) with secret in `.env` for MVP. Public-key (`RS256`) with JWKS endpoint is a chunk 09 hardening upgrade.
@@ -99,6 +108,7 @@ Read ADR 0002 + ADR 0004 first. Both shape this chunk's design.
 - **Cross-tenant test**: e2e test must assert that a therapist from Clinic A calling `GET /clients/<id-from-clinic-B>` returns 403 **and** that the Prisma extension would have thrown if the guard missed it (regression test for the belt-and-braces layer).
 
 ## Acceptance criteria
+
 - [ ] `docker compose up -d` — Postgres + MinIO + Mailhog + Redis healthy. **No Keycloak service.**
 - [ ] `pnpm db:migrate && pnpm db:seed` — DB has the auth tables, 1 Clinic, 1 Therapist with `externalAuthId` matching a Better-Auth `User.id`.
 - [ ] Visit `/login` on web → email/password sign-up as a new therapist → lands on clinic onboarding wizard → creates clinic → redirected to dashboard placeholder.
@@ -112,6 +122,7 @@ Read ADR 0002 + ADR 0004 first. Both shape this chunk's design.
 - [ ] `auth_failure_total{reason}` metric increments on invalid login attempts (placeholder counter; emitter wired even though full `/metrics` endpoint comes in chunk 09).
 
 ## Suggested first prompt (after bootstrap)
+
 ```
 Execute docs/chunks/01-auth-and-tenancy.md. Read ADR 0002 and ADR 0004 first, then enter plan mode. Surface the open decisions (Better-Auth deployment shape, web client library, mobile bearer vs OIDC, magic-link toggle, Prisma extension scope) and wait for my answers before writing the realm config, schema migration, or any guard code.
 ```

@@ -21,18 +21,21 @@
     "clean": "rm -rf dist .turbo",
     "lint": "eslint src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "generate": "prisma generate --env-file ../../.env",
-    "migrate": "prisma migrate dev --env-file ../../.env",
-    "migrate:deploy": "prisma migrate deploy --env-file ../../.env",
-    "studio": "prisma studio --env-file ../../.env",
-    "format": "prisma format --env-file ../../.env"
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "studio": "prisma studio",
+    "format": "prisma format",
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1"
   },
   "devDependencies": {
     "@vitapeak/config": "workspace:*",
+    "better-auth": "^1.6.11",
     "prisma": "^6.2.1",
+    "tsx": "^4.22.0",
     "typescript": "^5.7.3"
   }
 }

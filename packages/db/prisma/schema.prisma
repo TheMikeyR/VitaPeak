@@ -1,5 +1,7 @@
 // VitaPeak — Prisma schema
 // Chunk 00 lays the foundation: Clinic, Therapist, Client + enums.
+// Chunk 01 adds Better-Auth core tables (User, Session, Account, Verification, Jwks)
+// and the Invite model for the multi-tenant invite flow.
 // Domain expansion (CheckIn, PainPoint, BodyRegion, Exercise, PlanItem, ProgramTemplate,
 // AuditLog, ConsentRecord, HealthMetric, HealthSyncState) is deferred to later chunks
 // per PLAN.md § "Data model".
@@ -22,6 +24,85 @@ enum TherapistRole {
   THERAPIST
 }
 
+enum InvitedRole {
+  THERAPIST
+  CLIENT
+}
+
+// --- Better-Auth core tables (ADR 0002) ---
+// Schema matches Better-Auth 1.6.x core + jwt plugin output. Better-Auth User.id
+// is referenced from Therapist.externalAuthId and Client.externalAuthId.
+
+model User {
+  id            String    @id
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Jwks {
+  id         String   @id
+  publicKey  String
+  privateKey String
+  createdAt  DateTime @default(now())
+
+  @@map("jwks")
+}
+
 // --- Core tenancy + identity ---
 // `externalAuthId` is the Better-Auth user id today; Keycloak `sub` post-migration (ADR 0002).
 // Every domain row carries `clinicId` to support multi-tenant isolation enforced in
@@ -34,6 +115,7 @@ model Clinic {
   updatedAt  DateTime    @updatedAt
   therapists Therapist[]
   clients    Client[]
+  invites    Invite[]
 
   @@map("clinic")
 }
@@ -50,6 +132,7 @@ model Therapist {
   updatedAt      DateTime      @updatedAt
   clinic         Clinic        @relation(fields: [clinicId], references: [id])
   clients        Client[]
+  invitesSent    Invite[]      @relation("InviteSentBy")
 
   @@index([clinicId])
   @@map("therapist")
@@ -75,4 +158,29 @@ model Client {
   @@index([clinicId])
   @@index([therapistId])
   @@map("client")
+}
+
+// --- Invites ---
+// Single-use, 32-byte random tokens stored as SHA-256 hash; raw token only in URL.
+// On accept: Better-Auth user is created via auth.api.signUpEmail, then a Therapist
+// or Client row is created with externalAuthId = the Better-Auth User.id.
+
+model Invite {
+  id                   String      @id @default(cuid())
+  clinicId             String
+  email                String
+  firstName            String?
+  lastName             String?
+  tokenHash            String      @unique
+  expiresAt            DateTime
+  acceptedAt           DateTime?
+  invitedRole          InvitedRole
+  invitedByTherapistId String
+  createdAt            DateTime    @default(now())
+  clinic               Clinic      @relation(fields: [clinicId], references: [id])
+  invitedByTherapist   Therapist   @relation("InviteSentBy", fields: [invitedByTherapistId], references: [id])
+
+  @@index([clinicId])
+  @@index([email])
+  @@map("invite")
 }

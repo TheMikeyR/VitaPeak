@@ -1,0 +1,67 @@
+{
+  "common": {
+    "signOut": "Sign out",
+    "loading": "Loading…",
+    "cancel": "Cancel",
+    "save": "Save",
+    "continue": "Continue"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Sign in",
+      "magicLinkCta": "Send me a magic link",
+      "magicLinkPending": "Check your inbox to continue",
+      "noAccountCta": "Don't have an account? Sign up"
+    },
+    "signup": {
+      "title": "Create account",
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Create account",
+      "hasAccountCta": "Already have an account? Sign in"
+    }
+  },
+  "clinic": {
+    "onboarding": {
+      "title": "Create your clinic",
+      "description": "Give your clinic a name to get started.",
+      "nameLabel": "Clinic name",
+      "submit": "Continue"
+    }
+  },
+  "invite": {
+    "send": {
+      "title": "Invite client",
+      "emailLabel": "Client email",
+      "firstNameLabel": "First name",
+      "lastNameLabel": "Last name",
+      "submit": "Send invitation",
+      "emailSent": "Invitation sent",
+      "copyLinkCta": "Copy invite link",
+      "linkCopied": "Link copied"
+    },
+    "accept": {
+      "title": "Accept invitation",
+      "description": "Choose a password to create your account.",
+      "passwordLabel": "Password",
+      "submit": "Create my account",
+      "expired": "This invitation has expired",
+      "used": "This invitation has already been used",
+      "invalid": "The invitation link is invalid"
+    }
+  },
+  "error": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "invalidCredentials": "Incorrect email or password",
+    "serverError": "Something went wrong. Please try again.",
+    "unauthorized": "You are not authorized",
+    "forbidden": "Access denied"
+  }
+}
