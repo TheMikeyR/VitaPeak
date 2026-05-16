@@ -115,7 +115,15 @@
     "title": "History",
     "empty": "No check-ins yet.",
     "loading": "Loading history…",
-    "loadFailed": "Could not load history"
+    "loadFailed": "Could not load history",
+    "retry": "Try again",
+    "notFound": "Check-in not found",
+    "back": "Back to history",
+    "painPoints": "Pain points",
+    "mood": "Mood",
+    "notes": "Notes",
+    "painNotes": "Notes",
+    "noPoints": "No pain points recorded."
   },
   "bodyRegion": {
     "head": "Head",

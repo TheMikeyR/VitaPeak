@@ -5,7 +5,7 @@ Live progress log for `docs/chunks/02-body-map-check-in.md`. **Updated after eve
 - **Branch**: `claude/chunk-02-body-map`
 - **Static plan**: inline (see "Locked decisions resolved in plan mode" + "Phase progress" below — no separate plan file)
 - **Last update**: 2026-05-16
-- **Current phase**: 7 (`Mobile history screens`)
+- **Current phase**: 8 (`Maestro e2e + dev quick-login`)
 - **Token-budget hint**: medium
 
 ---
@@ -90,7 +90,7 @@ Resume at the "Next concrete step" section.
 - `apps/mobile/app/(poc)/body-map-dev.tsx` — visual smoke harness wiring `BodyMap` to local `Set<string>` state, listing selected ids + labels. Route: `/(poc)/body-map-dev`.
 - Verified: `pnpm typecheck` (12/12 green). Live web smoke deferred to user via `dev.rontved.com` → `/(poc)/body-map-dev`. Pre-existing lint nit in `body-tap-poc.tsx` (`G` unused) is unrelated and out of scope here.
 
-### ✅ Phase 6 — Mobile check-in flow (commit `__pending__`)
+### ✅ Phase 6 — Mobile check-in flow (commit `e6baff1`)
 
 - `apps/mobile/src/query/client.ts` + `app/_layout.tsx` — `QueryClientProvider` wraps `AuthGate` (split from `RootLayout`). Defaults: retry=1, no window-focus refetch, 30s staleTime.
 - `apps/mobile/src/api/check-ins.ts` — `useCheckIns()` (`GET /api/check-ins`) + `useSubmitCheckIn()` (POST). Optimistic insert into `['check-ins']` cache + rollback on error via `onMutate`/`onError`/`onSuccess` (swaps optimistic row for server row by `optimisticId`). `onSettled` invalidates so a subsequent fetch reconciles.
@@ -105,17 +105,12 @@ Resume at the "Next concrete step" section.
 - Deps: `@tanstack/react-query@^5.100`, `@react-native-community/slider@4.5.5`, `@vitapeak/contracts@workspace:*` added to `apps/mobile`.
 - Verified: `pnpm typecheck` (12/12 green). Live web smoke deferred to user.
 
-### 🟡 Phase 7 — Mobile history screens (NEXT)
+### ✅ Phase 7 — Mobile history screens (commit `HEAD` — see `git log` for SHA)
 
-`apps/mobile/src/components/BodyMap/{BodyMap,svg-front,svg-back,regions}.tsx`. Front/back tabs, tap → select region(s), highlight state. Reuse PoC tap logic. i18n labels via `bodyRegion.<slug>`.
-
-### ⬜ Phase 6 — Mobile check-in flow
-
-`apps/mobile/app/(client)/check-in/{index,details,review}.tsx`. Step 1: BodyMap select. Step 2: per-region painType + level slider + notes. Step 3: review (mood 1–5 + check-in notes) + submit. React Query mutation with optimistic add + rollback on error.
-
-### ⬜ Phase 7 — Mobile history screens
-
-`apps/mobile/app/(client)/history/{index,[id]}.tsx`. List by date desc, summary chip per region. Detail screen lists all pain points.
+- `apps/mobile/app/(client)/history/index.tsx` — `useCheckIns()` → `FlatList` of cards. Each card: `Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })` for `occurredAt`, dedup chip row of region labels (`regionI18nKey`), mood pill when present. States: `isLoading` → `ActivityIndicator` + `history.loading`; `isError` → `history.loadFailed` + retry button (`refetch()`); empty (`checkIns.length === 0`) → `history.empty`. `onRefresh` wired to `refetch()`. Tap card → `router.push({ pathname: '/(client)/history/[id]', params: { id } })`.
+- `apps/mobile/app/(client)/history/[id].tsx` — `useLocalSearchParams<{ id: string }>` + `useCheckIns()` → find by id in cached list (no separate fetch — list is the source of truth). Renders: date header, pain-points card (each row: region label + `painType` badge + `level/10` + per-point notes when present), meta card (mood pill + check-in notes) only when at least one is set. Missing id → `history.notFound` + back button to `/(client)/history`.
+- `packages/i18n/src/locales/{da,en}.json` — added `history.{retry,notFound,back,painPoints,mood,notes,painNotes,noPoints}`.
+- Verified: `pnpm typecheck` (12/12 green). Live web smoke deferred to user.
 
 ### ⬜ Phase 8 — Maestro e2e + dev quick-login
 
@@ -129,18 +124,18 @@ Run all chunk acceptance criteria. Update `docs/chunks/02-body-map-check-in.md` 
 
 ## Next concrete step
 
-**Start Phase 7 — Mobile history screens.**
+**Start Phase 8 — Maestro e2e + dev quick-login.**
 
-1. Replace stub `apps/mobile/app/(client)/history/index.tsx` with a real screen:
-   - Call `useCheckIns()` from `src/api/check-ins.ts`.
-   - Render `FlatList` of cards, one per check-in. Each card: formatted `occurredAt` (use `Intl.DateTimeFormat` with the active locale from `i18n.language`), region-summary chip row (translate each `bodyRegionId` via `regionI18nKey(id)`), optional mood pill.
-   - Tap a card → `router.push(\`/(client)/history/[id]\`, { id })`.
-   - States: loading (`isLoading`) → `history.loading` spinner; empty (`data?.checkIns.length === 0`) → `history.empty`; error (`isError`) → `history.loadFailed` with a retry button calling `refetch()`.
-2. Create `apps/mobile/app/(client)/history/[id].tsx`:
-   - `useLocalSearchParams<{ id: string }>()` → find the check-in in the cached list (fall back to the optional `byId` selector if missing — for now grab from `useCheckIns()` data).
-   - Render full detail: each `painPoint` with `regionI18nKey` label + painType badge + level + per-point notes; show check-in-level mood + notes.
-3. No new i18n keys needed (history.\* already added in Phase 6).
-4. Commit: `feat(mobile): client history list + detail` — flip Phase 7 → ✅, Phase 8 → 🟡.
+1. Add dev quick-login button on `apps/mobile/app/(auth)/login.tsx` (and `signup.tsx` if helpful) gated by `process.env.EXPO_PUBLIC_DEV_QUICK_LOGIN === 'true'`. On press, pre-fill seeded creds `client@vitapeak.local` / `<seeded password>` (see `packages/db/prisma/seed.ts`) and call the same Better-Auth sign-in path the form uses. Add a `testID="dev-quick-login"` for Maestro.
+2. Create `apps/mobile/.maestro/check-in.flow.yaml`:
+   - launchApp
+   - tap `dev-quick-login` → wait for `/(client)` route
+   - tap "New check-in" CTA
+   - tap front body view (already default), tap `lower-back` region — note this is on the back view, so first tap `bodyMap.back` tab, then the region
+   - Continue → tap "Sharp" chip → slider value 7 → Continue → Submit
+   - assert "Check-in saved" alert/text appears
+3. Document Maestro install + invocation in chunk 02 file (`maestro test apps/mobile/.maestro/check-in.flow.yaml`). Ensure `EXPO_PUBLIC_DEV_QUICK_LOGIN=true` is set when running the dev server for the flow.
+4. Commit: `test(mobile): maestro check-in e2e + dev quick-login` — flip Phase 8 → ✅, Phase 9 → 🟡.
 
 ---
 

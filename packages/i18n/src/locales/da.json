@@ -115,7 +115,15 @@
     "title": "Historik",
     "empty": "Ingen check-ins endnu.",
     "loading": "Indlæser historik…",
-    "loadFailed": "Kunne ikke indlæse historik"
+    "loadFailed": "Kunne ikke indlæse historik",
+    "retry": "Prøv igen",
+    "notFound": "Check-in ikke fundet",
+    "back": "Tilbage til historik",
+    "painPoints": "Smertepunkter",
+    "mood": "Humør",
+    "notes": "Noter",
+    "painNotes": "Noter",
+    "noPoints": "Ingen smertepunkter registreret."
   },
   "bodyRegion": {
     "head": "Hoved",
