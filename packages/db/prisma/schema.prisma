@@ -2,8 +2,10 @@
 // Chunk 00 lays the foundation: Clinic, Therapist, Client + enums.
 // Chunk 01 adds Better-Auth core tables (User, Session, Account, Verification, Jwks)
 // and the Invite model for the multi-tenant invite flow.
-// Domain expansion (CheckIn, PainPoint, BodyRegion, Exercise, PlanItem, ProgramTemplate,
-// AuditLog, ConsentRecord, HealthMetric, HealthSyncState) is deferred to later chunks
+// Chunk 02 adds BodyRegion (system-shared, seeded) + CheckIn + PainPoint for the
+// body-map pain check-in flow. See docs/decisions/0001-body-svg-source.md.
+// Remaining domain expansion (Exercise, PlanItem, ProgramTemplate, AuditLog,
+// ConsentRecord, HealthMetric, HealthSyncState) is deferred to later chunks
 // per PLAN.md § "Data model".
 
 generator client {
@@ -27,6 +29,21 @@ enum TherapistRole {
 enum InvitedRole {
   THERAPIST
   CLIENT
+}
+
+enum Side {
+  LEFT
+  RIGHT
+  CENTER
+}
+
+enum PainType {
+  BURNING
+  SHARP
+  RADIATING
+  DULL
+  ACHING
+  TINGLING
 }
 
 // --- Better-Auth core tables (ADR 0002) ---
@@ -153,6 +170,7 @@ model Client {
   updatedAt      DateTime  @updatedAt
   clinic         Clinic    @relation(fields: [clinicId], references: [id])
   therapist      Therapist @relation(fields: [therapistId], references: [id])
+  checkIns       CheckIn[]
 
   @@unique([clinicId, email])
   @@index([clinicId])
@@ -183,4 +201,61 @@ model Invite {
   @@index([clinicId])
   @@index([email])
   @@map("invite")
+}
+
+// --- Body map + pain check-in (chunk 02) ---
+// BodyRegion is system-shared (no clinicId) — seeded from
+// apps/mobile/assets/body/regions.json on `pnpm db:seed`. UI resolves the
+// display label via i18n key `bodyRegion.<id>`; `label` is the English fallback.
+// CheckIn carries clinicId for tenancy isolation (enforced in tenancy.extension).
+// PainPoint is reached transitively via CheckIn — no direct controller queries it.
+
+model BodyRegion {
+  id           String       @id
+  parentId     String?
+  side         Side?
+  displayLayer String
+  label        String
+  parent       BodyRegion?  @relation("RegionHierarchy", fields: [parentId], references: [id])
+  children     BodyRegion[] @relation("RegionHierarchy")
+  painPoints   PainPoint[]
+
+  @@index([parentId])
+  @@index([displayLayer])
+  @@map("body_region")
+}
+
+model CheckIn {
+  id         String      @id @default(cuid())
+  clientId   String
+  clinicId   String
+  occurredAt DateTime    @default(now())
+  mood       Int?
+  notes      String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  client     Client      @relation(fields: [clientId], references: [id])
+  painPoints PainPoint[]
+
+  @@index([clientId, occurredAt(sort: Desc)])
+  @@index([clinicId, occurredAt(sort: Desc)])
+  @@map("check_in")
+}
+
+model PainPoint {
+  id           String     @id @default(cuid())
+  checkInId    String
+  bodyRegionId String
+  painType     PainType
+  level        Int
+  x            Float?
+  y            Float?
+  notes        String?
+  createdAt    DateTime   @default(now())
+  checkIn      CheckIn    @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+  region       BodyRegion @relation(fields: [bodyRegionId], references: [id])
+
+  @@index([checkInId])
+  @@index([bodyRegionId])
+  @@map("pain_point")
 }

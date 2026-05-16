@@ -1,0 +1,298 @@
+[
+  { "id": "head", "parentId": null, "side": "CENTER", "displayLayer": "2d-front", "label": "Head" },
+  { "id": "neck", "parentId": null, "side": "CENTER", "displayLayer": "2d-front", "label": "Neck" },
+  {
+    "id": "shoulder.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Shoulder"
+  },
+  {
+    "id": "shoulder.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Shoulder"
+  },
+  {
+    "id": "chest",
+    "parentId": null,
+    "side": "CENTER",
+    "displayLayer": "2d-front",
+    "label": "Chest"
+  },
+  {
+    "id": "chest.left",
+    "parentId": "chest",
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Chest"
+  },
+  {
+    "id": "chest.right",
+    "parentId": "chest",
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Chest"
+  },
+  {
+    "id": "abdomen",
+    "parentId": null,
+    "side": "CENTER",
+    "displayLayer": "2d-front",
+    "label": "Abdomen"
+  },
+  {
+    "id": "upper-arm.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Upper Arm"
+  },
+  {
+    "id": "upper-arm.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Upper Arm"
+  },
+  {
+    "id": "elbow.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Elbow"
+  },
+  {
+    "id": "elbow.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Elbow"
+  },
+  {
+    "id": "forearm.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Forearm"
+  },
+  {
+    "id": "forearm.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Forearm"
+  },
+  {
+    "id": "wrist.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Wrist"
+  },
+  {
+    "id": "wrist.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Wrist"
+  },
+  {
+    "id": "hand.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Hand"
+  },
+  {
+    "id": "hand.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Hand"
+  },
+  {
+    "id": "hip.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Hip"
+  },
+  {
+    "id": "hip.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Hip"
+  },
+  {
+    "id": "groin",
+    "parentId": null,
+    "side": "CENTER",
+    "displayLayer": "2d-front",
+    "label": "Groin"
+  },
+  {
+    "id": "thigh.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Thigh"
+  },
+  {
+    "id": "thigh.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Thigh"
+  },
+  {
+    "id": "knee.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Knee"
+  },
+  {
+    "id": "knee.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Knee"
+  },
+  {
+    "id": "shin.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Shin"
+  },
+  {
+    "id": "shin.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Shin"
+  },
+  {
+    "id": "ankle.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Ankle"
+  },
+  {
+    "id": "ankle.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Ankle"
+  },
+  {
+    "id": "foot.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-front",
+    "label": "Left Foot"
+  },
+  {
+    "id": "foot.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-front",
+    "label": "Right Foot"
+  },
+  {
+    "id": "upper-back",
+    "parentId": null,
+    "side": "CENTER",
+    "displayLayer": "2d-back",
+    "label": "Upper Back"
+  },
+  {
+    "id": "scapula.left",
+    "parentId": "upper-back",
+    "side": "LEFT",
+    "displayLayer": "2d-back",
+    "label": "Left Shoulder Blade"
+  },
+  {
+    "id": "scapula.right",
+    "parentId": "upper-back",
+    "side": "RIGHT",
+    "displayLayer": "2d-back",
+    "label": "Right Shoulder Blade"
+  },
+  {
+    "id": "mid-back",
+    "parentId": null,
+    "side": "CENTER",
+    "displayLayer": "2d-back",
+    "label": "Mid Back"
+  },
+  {
+    "id": "lower-back",
+    "parentId": null,
+    "side": "CENTER",
+    "displayLayer": "2d-back",
+    "label": "Lower Back"
+  },
+  {
+    "id": "glute.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-back",
+    "label": "Left Glute"
+  },
+  {
+    "id": "glute.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-back",
+    "label": "Right Glute"
+  },
+  {
+    "id": "hamstring.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-back",
+    "label": "Left Hamstring"
+  },
+  {
+    "id": "hamstring.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-back",
+    "label": "Right Hamstring"
+  },
+  {
+    "id": "calf.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-back",
+    "label": "Left Calf"
+  },
+  {
+    "id": "calf.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-back",
+    "label": "Right Calf"
+  },
+  {
+    "id": "heel.left",
+    "parentId": null,
+    "side": "LEFT",
+    "displayLayer": "2d-back",
+    "label": "Left Heel"
+  },
+  {
+    "id": "heel.right",
+    "parentId": null,
+    "side": "RIGHT",
+    "displayLayer": "2d-back",
+    "label": "Right Heel"
+  }
+]
