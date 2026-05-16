@@ -5,7 +5,7 @@ Live progress log for `docs/chunks/02-body-map-check-in.md`. **Updated after eve
 - **Branch**: `claude/chunk-02-body-map`
 - **Static plan**: inline (see "Locked decisions resolved in plan mode" + "Phase progress" below — no separate plan file)
 - **Last update**: 2026-05-16
-- **Current phase**: 5 (`Mobile BodyMap component`)
+- **Current phase**: 6 (`Mobile check-in flow`)
 - **Token-budget hint**: medium
 
 ---
@@ -71,14 +71,26 @@ Resume at the "Next concrete step" section.
 - `AppModule` imports `BodyRegionsModule` + `CheckInsModule`.
 - Verified: `pnpm typecheck` (12/12 green). Live smoke deferred to Phase 4's supertest-based e2e.
 
-### ✅ Phase 4 — API e2e tests (commit `__pending__`)
+### ✅ Phase 4 — API e2e tests (commit `4786c71`)
 
 - `apps/api/test/e2e/check-in.e2e-spec.ts` — 10 cases: `GET /body-regions` 401 without JWT + 200 with 44 rows (client + therapist JWT both, since BodyRegion is system-shared), happy-path POST (2 pain points persisted) + GET (desc by `occurredAt`), validation (`level=11`, unknown `bodyRegionId` with id in error message, empty `painPoints[]`), cross-tenant isolation (client B sees empty list), role gating (therapist POST/GET → 403).
 - Test seeds the 44 `BodyRegion` rows in-test (`runWithSystemContext` + upsert in root-then-child order, reading `packages/db/data/body-regions.json` via `fs`) so the suite is independent of `pnpm db:seed`.
 - Bootstrap creates 2 clinics + 2 clients via the real invite flow (`/auth/sign-up/email` → `/api/clinics/signup` → `/api/invites/create` → `/api/invites/accept` → `/auth/sign-in/email` → `/auth/token`) — exercises the chunk 01 path end-to-end.
 - `pnpm --filter @vitapeak/api test`: 19/19 green (auth e2e + check-in e2e + 1 unit). `pnpm typecheck`: 12/12 green.
 
-### 🟡 Phase 5 — Mobile BodyMap component (NEXT)
+### ✅ Phase 5 — Mobile BodyMap component (commit `__pending__`)
+
+- `apps/mobile/src/components/BodyMap/`:
+  - `regions.ts` — shape data per view (front 31, back 35 — shoulders/arms/hands/feet appear on both). Discriminated union `RegionShape = ellipse | rect | path`. `BODY_VIEWBOX = '0 0 200 470'`. `regionI18nKey(id)` flattens dotted slugs (`shoulder.left` → `bodyRegion.shoulder_left`) to dodge i18next's `.` keySeparator.
+  - `body-svg.tsx` — shared `<Svg>` renderer; toggles `fill`/`stroke` on `selected`. Scapulae keep their `#e0e0e0` idle tint when not selected (matches PoC). `accessibilityLabel` from i18n.
+  - `svg-front.tsx` + `svg-back.tsx` — thin wrappers binding `BodySvg` to `FRONT_SHAPES` / `BACK_SHAPES`.
+  - `BodyMap.tsx` — front/back tab pressables + render the chosen `SvgComponent`. Props: `selected: ReadonlySet<string>`, `onToggleRegion(id)`, optional `initialView`/`width`/`height`. Internal state for active view only — selection is controlled by parent (check-in flow drives it).
+  - `index.ts` re-exports.
+- `packages/i18n/src/locales/{da,en}.json` — `bodyMap.{front,back}` + flat `bodyRegion.<key>` map covering all 44 ids (Danish translations on the `da` side).
+- `apps/mobile/app/(poc)/body-map-dev.tsx` — visual smoke harness wiring `BodyMap` to local `Set<string>` state, listing selected ids + labels. Route: `/(poc)/body-map-dev`.
+- Verified: `pnpm typecheck` (12/12 green). Live web smoke deferred to user via `dev.rontved.com` → `/(poc)/body-map-dev`. Pre-existing lint nit in `body-tap-poc.tsx` (`G` unused) is unrelated and out of scope here.
+
+### 🟡 Phase 6 — Mobile check-in flow (NEXT)
 
 `apps/mobile/src/components/BodyMap/{BodyMap,svg-front,svg-back,regions}.tsx`. Front/back tabs, tap → select region(s), highlight state. Reuse PoC tap logic. i18n labels via `bodyRegion.<slug>`.
 
@@ -102,15 +114,16 @@ Run all chunk acceptance criteria. Update `docs/chunks/02-body-map-check-in.md` 
 
 ## Next concrete step
 
-**Start Phase 5 — Mobile BodyMap component.**
+**Start Phase 6 — Mobile check-in flow.**
 
-1. Create `apps/mobile/src/components/BodyMap/`:
-   - `regions.ts` — re-export `apps/mobile/assets/body/regions.json` typed against the contract `BodyRegionItem` shape; group by `displayLayer` (`2d-front` vs `2d-back`).
-   - `svg-front.tsx` + `svg-back.tsx` — `<Svg>` (`react-native-svg`) with one `<Path id={slug}>` per region. Reuse the SVG paths from the PoC at `apps/mobile/app/(poc)/body-tap-poc.tsx`.
-   - `BodyMap.tsx` — props: `selected: string[]`, `onToggleRegion: (id: string) => void`. Front/back tab switcher (segmented control). Tap → call `onToggleRegion`. Selected path: accent fill; idle: light fill. `useTranslation()` resolves `bodyRegion.<slug>` for accessibility label.
-2. Add i18n keys: `apps/mobile/src/i18n/{da,en}.json` — `bodyRegion.<slug>` for all 44 ids + `bodyMap.front`, `bodyMap.back`.
-3. Storybook is not in scope; smoke-render the component on a dev screen (`/(poc)/body-map-dev.tsx` is fine — gated by `EXPO_PUBLIC_DEV_*`) and tap-verify in Expo web before moving on.
-4. Commit: `feat(mobile): BodyMap component (front/back tabs, tap select)` — include progress-file update flipping Phase 5 → ✅ and Phase 6 → 🟡.
+1. Create `apps/mobile/src/api/check-ins.ts` — React Query hooks against the ts-rest client: `useSubmitCheckIn()` (mutation with optimistic insert into `useCheckIns` cache + rollback on error) and `useCheckIns()` (`GET /api/check-ins`). Reuse the ofetch-backed transport in `src/api/` from chunk 01.
+2. Create the 3-step flow under `apps/mobile/app/(client)/check-in/`:
+   - `index.tsx` — wraps `BodyMap` with controlled `Set<string>` state; "Continue" disabled until ≥1 region selected. Pass selected ids forward via route params (or a small Zustand store — pick the simpler one).
+   - `details.tsx` — for each selected region, render: `painType` segmented (BURNING/SHARP/RADIATING/DULL/ACHING/TINGLING), level slider (0–10) via `@react-native-community/slider` (add to deps), optional per-region notes (`<TextInput>` max 2000).
+   - `review.tsx` — summarize regions + their painType+level, mood 1–5 picker (optional), check-in-level notes (optional). Submit fires `useSubmitCheckIn`. On 201 → `router.replace('(client)/history')` with success toast.
+3. Add i18n keys to `da.json`/`en.json`: `checkIn.{title,continue,submit,saved}`, `painType.{BURNING,SHARP,RADIATING,DULL,ACHING,TINGLING}`, `history.{title,empty}` (history copy needed for Phase 7 too — bundle now).
+4. Update `(client)/index.tsx` to link to `(client)/check-in` ("New check-in" CTA).
+5. Commit: `feat(mobile): client check-in flow (select → details → review)` — include progress-file update flipping Phase 6 → ✅ and Phase 7 → 🟡.
 
 ---
 
