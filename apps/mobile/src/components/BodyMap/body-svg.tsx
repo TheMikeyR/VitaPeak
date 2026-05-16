@@ -49,6 +49,7 @@ export function BodySvg({
         const stroke = isSelected ? SELECTED_STROKE : IDLE_STROKE;
         const common = {
           accessibilityLabel: label,
+          testID: `region-${shape.id}`,
           fill,
           stroke,
           strokeWidth: 1.5,

@@ -88,6 +88,7 @@ export default function CheckInReview() {
       </View>
 
       <Pressable
+        testID="checkin-submit"
         accessibilityRole="button"
         disabled={submit.isPending}
         onPress={onSubmit}

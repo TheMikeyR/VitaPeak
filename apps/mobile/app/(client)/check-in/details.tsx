@@ -46,6 +46,7 @@ export default function CheckInDetails() {
                 return (
                   <Pressable
                     key={pt}
+                    testID={`pain-type-${pt}-${regionId}`}
                     onPress={() => updatePainPoint(regionId, { painType: pt })}
                     style={[styles.chip, active && styles.chipActive]}
                     accessibilityRole="button"
@@ -85,7 +86,11 @@ export default function CheckInDetails() {
         );
       })}
 
-      <Pressable style={styles.primary} onPress={() => router.push('/(client)/check-in/review')}>
+      <Pressable
+        testID="checkin-step2-continue"
+        style={styles.primary}
+        onPress={() => router.push('/(client)/check-in/review')}
+      >
         <Text style={styles.primaryText}>{t('common.continue')}</Text>
       </Pressable>
     </ScrollView>

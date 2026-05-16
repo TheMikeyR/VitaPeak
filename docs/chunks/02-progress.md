@@ -5,8 +5,8 @@ Live progress log for `docs/chunks/02-body-map-check-in.md`. **Updated after eve
 - **Branch**: `claude/chunk-02-body-map`
 - **Static plan**: inline (see "Locked decisions resolved in plan mode" + "Phase progress" below — no separate plan file)
 - **Last update**: 2026-05-16
-- **Current phase**: 8 (`Maestro e2e + dev quick-login`)
-- **Token-budget hint**: medium
+- **Current phase**: ✅ chunk complete (Phases 8 + 9 landed)
+- **Token-budget hint**: low (chunk done)
 
 ---
 
@@ -112,30 +112,25 @@ Resume at the "Next concrete step" section.
 - `packages/i18n/src/locales/{da,en}.json` — added `history.{retry,notFound,back,painPoints,mood,notes,painNotes,noPoints}`.
 - Verified: `pnpm typecheck` (12/12 green). Live web smoke deferred to user.
 
-### ⬜ Phase 8 — Maestro e2e + dev quick-login
+### ✅ Phase 8 — Maestro e2e + dev quick-login (commit `HEAD` — combined with Phase 9)
 
-`apps/mobile/.maestro/check-in.flow.yaml`. Dev quick-login button on `(auth)/login.tsx` gated by `EXPO_PUBLIC_DEV_QUICK_LOGIN=true`. Maestro: launch → quick-login as seeded client → tap "Check in" → tap front body view → tap lower back → select "Sharp" → slider 7 → next → submit → assert "Check-in saved" toast.
+- `apps/mobile/app/(auth)/login.tsx` — dev quick-login button gated by `process.env.EXPO_PUBLIC_DEV_QUICK_LOGIN === 'true'`. Hard-codes the seeded `client@vitapeak.local` / `demo-password-123` from `packages/db/prisma/seed.ts` and goes through the same `/auth/sign-in/email` → `signInWithSession` path the form uses. `testID="dev-quick-login"`.
+- `testID`s added to the flow's tap targets: `home-new-checkin`, `body-tab-front`, `body-tab-back`, `region-<slug>` on every region (via `body-svg.tsx`), `pain-type-<TYPE>-<regionId>` on each pain-type chip, `checkin-step1-continue`, `checkin-step2-continue`, `checkin-submit`. Locale-agnostic selectors so the Maestro flow doesn't depend on Danish vs English text.
+- `apps/mobile/.maestro/check-in.flow.yaml` — launch (clearState) → quick-login → home `New check-in` → back tab → `region-lower-back` → continue → `pain-type-SHARP-lower-back` (slider left at default 5; Maestro slider drags are flaky and API accepts any 0–10) → continue → submit → assert Danish `Check-in gemt` native alert.
+- Maestro CLI is not installed on the dev VPS, so the flow is committed but not executed in CI here. Run locally with `maestro test apps/mobile/.maestro/check-in.flow.yaml` after `EXPO_PUBLIC_DEV_QUICK_LOGIN=true pnpm --filter @vitapeak/mobile dev` + `pnpm --filter @vitapeak/db db:seed`.
+- Verified: `pnpm typecheck` (12/12 green), `pnpm --filter @vitapeak/api test` (19/19 green).
 
-### ⬜ Phase 9 — Acceptance + PR
+### ✅ Phase 9 — Acceptance + PR (commit `HEAD` — combined with Phase 8)
 
-Run all chunk acceptance criteria. Update `docs/chunks/02-body-map-check-in.md` Status line. `git push origin claude/chunk-02-body-map && gh pr create`.
+- Chunk spec `docs/chunks/02-body-map-check-in.md` Status flipped to ✅ done. Acceptance checklist updated — 8/9 boxes checked; the only unchecked box is the live Maestro run (CLI unavailable on dev VPS — flow file present and ready).
+- No code regression: `pnpm --filter @vitapeak/api test` (19/19), `pnpm typecheck` (12/12).
+- Branch pushed; PR opened via `gh pr create` (URL in the commit's parent message body).
 
 ---
 
 ## Next concrete step
 
-**Start Phase 8 — Maestro e2e + dev quick-login.**
-
-1. Add dev quick-login button on `apps/mobile/app/(auth)/login.tsx` (and `signup.tsx` if helpful) gated by `process.env.EXPO_PUBLIC_DEV_QUICK_LOGIN === 'true'`. On press, pre-fill seeded creds `client@vitapeak.local` / `<seeded password>` (see `packages/db/prisma/seed.ts`) and call the same Better-Auth sign-in path the form uses. Add a `testID="dev-quick-login"` for Maestro.
-2. Create `apps/mobile/.maestro/check-in.flow.yaml`:
-   - launchApp
-   - tap `dev-quick-login` → wait for `/(client)` route
-   - tap "New check-in" CTA
-   - tap front body view (already default), tap `lower-back` region — note this is on the back view, so first tap `bodyMap.back` tab, then the region
-   - Continue → tap "Sharp" chip → slider value 7 → Continue → Submit
-   - assert "Check-in saved" alert/text appears
-3. Document Maestro install + invocation in chunk 02 file (`maestro test apps/mobile/.maestro/check-in.flow.yaml`). Ensure `EXPO_PUBLIC_DEV_QUICK_LOGIN=true` is set when running the dev server for the flow.
-4. Commit: `test(mobile): maestro check-in e2e + dev quick-login` — flip Phase 8 → ✅, Phase 9 → 🟡.
+**Chunk 02 is done.** A fresh session should pick the next chunk from `docs/chunks/README.md` — most likely `docs/chunks/03-pain-trends-web.md` (therapist trends + heatmap on web, which consumes the check-in data persisted here).
 
 ---
 

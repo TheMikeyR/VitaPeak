@@ -30,6 +30,7 @@ export default function CheckInSelect() {
           {t('checkIn.selectedCount', { count: draft.selectedRegions.length })}
         </Text>
         <Pressable
+          testID="checkin-step1-continue"
           accessibilityRole="button"
           disabled={!canContinue}
           onPress={() => router.push('/(client)/check-in/details')}

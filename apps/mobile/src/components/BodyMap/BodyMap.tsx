@@ -29,6 +29,7 @@ export function BodyMap({
     <View style={styles.container}>
       <View style={styles.tabs} accessibilityRole="tablist">
         <Pressable
+          testID="body-tab-front"
           style={[styles.tab, view === 'front' && styles.tabActive]}
           onPress={() => setView('front')}
           accessibilityRole="tab"
@@ -39,6 +40,7 @@ export function BodyMap({
           </Text>
         </Pressable>
         <Pressable
+          testID="body-tab-back"
           style={[styles.tab, view === 'back' && styles.tabActive]}
           onPress={() => setView('back')}
           accessibilityRole="tab"

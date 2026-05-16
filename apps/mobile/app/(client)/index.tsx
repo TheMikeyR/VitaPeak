@@ -12,7 +12,11 @@ export default function ClientHome() {
       <Text style={styles.title}>{t('checkIn.home.title')}</Text>
       <Text style={styles.subtitle}>{t('checkIn.home.subtitle')}</Text>
 
-      <TouchableOpacity style={styles.primary} onPress={() => router.push('/(client)/check-in')}>
+      <TouchableOpacity
+        testID="home-new-checkin"
+        style={styles.primary}
+        onPress={() => router.push('/(client)/check-in')}
+      >
         <Text style={styles.primaryText}>{t('checkIn.home.newCheckIn')}</Text>
       </TouchableOpacity>
 
